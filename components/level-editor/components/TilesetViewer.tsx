@@ -22,6 +22,15 @@ export const TilesetViewer: React.FC<TilesetViewerProps> = ({
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
   const [imageLoaded, setImageLoaded] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+
+  // Check if mobile on mount and resize
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth < 768);
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -95,11 +104,22 @@ export const TilesetViewer: React.FC<TilesetViewerProps> = ({
     if (!canvas || !imageLoaded) return;
 
     const rect = canvas.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
     
-    const col = Math.floor(x / tileWidth);
-    const row = Math.floor(y / tileHeight);
+    // Calculate relative position within canvas
+    const relativeX = e.clientX - rect.left;
+    const relativeY = e.clientY - rect.top;
+    
+    // Get canvas actual size vs display size for proper scaling
+    const scaleX = canvas.width / rect.width;
+    const scaleY = canvas.height / rect.height;
+    
+    // Apply scaling to get canvas pixel coordinates
+    const canvasX = relativeX * scaleX;
+    const canvasY = relativeY * scaleY;
+    
+    // Convert to grid coordinates
+    const col = Math.floor(canvasX / tileWidth);
+    const row = Math.floor(canvasY / tileHeight);
     
     if (col >= 0 && col < columns && row >= 0 && row < rows) {
       const frameIndex = row * columns + col;
@@ -112,11 +132,22 @@ export const TilesetViewer: React.FC<TilesetViewerProps> = ({
     if (!canvas || !imageLoaded) return;
 
     const rect = canvas.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
     
-    const col = Math.floor(x / tileWidth);
-    const row = Math.floor(y / tileHeight);
+    // Calculate relative position within canvas
+    const relativeX = e.clientX - rect.left;
+    const relativeY = e.clientY - rect.top;
+    
+    // Get canvas actual size vs display size for proper scaling
+    const scaleX = canvas.width / rect.width;
+    const scaleY = canvas.height / rect.height;
+    
+    // Apply scaling to get canvas pixel coordinates
+    const canvasX = relativeX * scaleX;
+    const canvasY = relativeY * scaleY;
+    
+    // Convert to grid coordinates
+    const col = Math.floor(canvasX / tileWidth);
+    const row = Math.floor(canvasY / tileHeight);
     
     if (col >= 0 && col < columns && row >= 0 && row < rows) {
       const frameIndex = row * columns + col;
@@ -130,10 +161,40 @@ export const TilesetViewer: React.FC<TilesetViewerProps> = ({
     setHoveredIndex(null);
   };
 
+  const handleCanvasTouchStart = (e: React.TouchEvent<HTMLCanvasElement>) => {
+    e.preventDefault(); // Prevent scrolling
+    const canvas = canvasRef.current;
+    if (!canvas || !imageLoaded) return;
+
+    const rect = canvas.getBoundingClientRect();
+    const touch = e.touches[0];
+    
+    // Calculate relative position within canvas
+    const relativeX = touch.clientX - rect.left;
+    const relativeY = touch.clientY - rect.top;
+    
+    // Get canvas actual size vs display size for proper scaling
+    const scaleX = canvas.width / rect.width;
+    const scaleY = canvas.height / rect.height;
+    
+    // Apply scaling to get canvas pixel coordinates
+    const canvasX = relativeX * scaleX;
+    const canvasY = relativeY * scaleY;
+    
+    // Convert to grid coordinates
+    const col = Math.floor(canvasX / tileWidth);
+    const row = Math.floor(canvasY / tileHeight);
+    
+    if (col >= 0 && col < columns && row >= 0 && row < rows) {
+      const frameIndex = row * columns + col;
+      onTileSelect(frameIndex);
+    }
+  };
+
   return (
     <div className="p-2 bg-gray-800 rounded">
       <h3 className="text-sm font-semibold mb-2 text-white">
-        Tileset Grid ({columns}x{rows}) - Click to select tiles
+        Tileset Grid ({columns}x{rows}) - {isMobile ? 'Tap' : 'Click'} to select tiles
       </h3>
       <div className="border border-gray-600 inline-block">
         <canvas
@@ -141,17 +202,21 @@ export const TilesetViewer: React.FC<TilesetViewerProps> = ({
           onClick={handleCanvasClick}
           onMouseMove={handleCanvasMouseMove}
           onMouseLeave={handleCanvasMouseLeave}
-          className="cursor-crosshair block"
+          onTouchStart={handleCanvasTouchStart} // Add touch support
+          className="cursor-crosshair block touch-manipulation"
           style={{
             imageRendering: 'pixelated',
-            maxWidth: '300px',
-            maxHeight: '300px'
+            maxWidth: isMobile ? '90vw' : '400px',
+            maxHeight: isMobile ? '60vh' : '400px',
+            width: isMobile ? '90vw' : '100%',
+            minWidth: isMobile ? '320px' : '300px',
+            minHeight: isMobile ? '240px' : '200px'
           }}
         />
       </div>
       {hoveredIndex !== null && (
         <div className="mt-2 text-xs text-gray-300">
-          Hovering: Frame {hoveredIndex} (Row {Math.floor(hoveredIndex / columns)}, Col {hoveredIndex % columns})
+          Frame {hoveredIndex} (Row {Math.floor(hoveredIndex / columns)}, Col {hoveredIndex % columns})
         </div>
       )}
     </div>

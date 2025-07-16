@@ -19,6 +19,7 @@ interface ToolbarProps {
   readonly onClear: () => void;
   readonly onLevelDataChange: (data: LevelData | ((prev: LevelData) => LevelData)) => void;
   readonly onZoomChange: (zoom: number) => void;
+  readonly isMobile?: boolean;
 }
 
 const Toolbar = memo<ToolbarProps>(({
@@ -37,7 +38,8 @@ const Toolbar = memo<ToolbarProps>(({
   onToggleGrid,
   onClear,
   onLevelDataChange,
-  onZoomChange
+  onZoomChange,
+  isMobile = false
 }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -74,6 +76,138 @@ const Toolbar = memo<ToolbarProps>(({
     }));
   };
 
+  // Mobile layout - vertical stacking
+  if (isMobile) {
+    return (
+      <>
+        <div className="space-y-4">
+          {/* Level Name */}
+          <div className="flex flex-col gap-2">
+            <label className="text-sm font-medium text-gray-300">Level Name</label>
+            <input
+              type="text"
+              value={levelData.metadata.name}
+              onChange={(e) => handleNameChange(e.target.value)}
+              className="w-full px-3 py-2 text-sm bg-gray-700 rounded border border-gray-600 text-white focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+            />
+          </div>
+
+          {/* Level Size */}
+          <div className="flex flex-col gap-2">
+            <label className="text-sm font-medium text-gray-300">Level Size</label>
+            <div className="flex items-center gap-3">
+              <input
+                type="number"
+                min="10"
+                max="50"
+                value={levelData.width}
+                onChange={(e) => handleSizeChange(Number(e.target.value), levelData.height)}
+                className="flex-1 px-3 py-2 text-sm bg-gray-700 rounded border border-gray-600 text-white focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                placeholder="Width"
+              />
+              <span className="text-gray-400">×</span>
+              <input
+                type="number"
+                min="10"
+                max="50"
+                value={levelData.height}
+                onChange={(e) => handleSizeChange(levelData.width, Number(e.target.value))}
+                className="flex-1 px-3 py-2 text-sm bg-gray-700 rounded border border-gray-600 text-white focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                placeholder="Height"
+              />
+            </div>
+          </div>
+
+          {/* Zoom */}
+          <div className="flex flex-col gap-2">
+            <label className="text-sm font-medium text-gray-300">Zoom: {zoom.toFixed(1)}x</label>
+            <input
+              type="range"
+              min="0.5"
+              max="3"
+              step="0.1"
+              value={zoom}
+              onChange={(e) => onZoomChange(Number(e.target.value))}
+              className="w-full"
+            />
+          </div>
+
+          {/* Action Buttons */}
+          <div className="flex flex-col gap-3">
+            <div className="flex gap-2">
+              <button
+                onClick={onToggleGrid}
+                className={`flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-lg border-2 transition-all ${
+                  showGrid
+                    ? 'border-blue-500 bg-blue-600 bg-opacity-20 text-white'
+                    : 'border-gray-600 hover:border-gray-500 text-gray-300 hover:text-white'
+                }`}
+              >
+                {showGrid ? <Eye size={18} /> : <EyeOff size={18} />}
+                <span className="text-sm font-medium">Grid</span>
+              </button>
+              
+              <button
+                onClick={onToggleEraser}
+                className={`flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-lg border-2 transition-all ${
+                  isErasing
+                    ? 'border-red-500 bg-red-600 bg-opacity-20 text-red-300'
+                    : 'border-gray-600 hover:border-gray-500 text-gray-300 hover:text-white'
+                }`}
+              >
+                <Eraser size={18} />
+                <span className="text-sm font-medium">Eraser</span>
+              </button>
+            </div>
+
+            <div className="flex gap-2">
+              <button
+                onClick={onSave}
+                className="flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-lg border border-gray-600 hover:border-gray-500 text-gray-300 hover:text-white transition-all"
+              >
+                <Save size={18} />
+                <span className="text-sm font-medium">Save</span>
+              </button>
+
+              <button
+                onClick={handleLoadClick}
+                className="flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-lg border border-gray-600 hover:border-gray-500 text-gray-300 hover:text-white transition-all"
+              >
+                <Upload size={18} />
+                <span className="text-sm font-medium">Load</span>
+              </button>
+
+              <button
+                onClick={onExport}
+                className="flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-lg border border-gray-600 hover:border-gray-500 text-gray-300 hover:text-white transition-all"
+              >
+                <Download size={18} />
+                <span className="text-sm font-medium">Export</span>
+              </button>
+            </div>
+
+            <button
+              onClick={onClear}
+              className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-lg border border-red-600 hover:border-red-500 text-red-300 hover:text-red-200 transition-all"
+            >
+              <Trash2 size={18} />
+              <span className="text-sm font-medium">Clear Level</span>
+            </button>
+          </div>
+        </div>
+
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept=".json"
+          onChange={handleFileChange}
+          className="hidden"
+        />
+      </>
+    );
+  }
+
+  // Desktop layout - horizontal
   return (
     <>
       <div className="bg-gray-800 border-b border-gray-700 px-4 py-3 h-[61px] flex items-center">

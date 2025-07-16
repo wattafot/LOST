@@ -31,23 +31,43 @@ const Canvas = memo<CanvasProps>(({
     return { x, y };
   }, []);
 
-  // Handle canvas interactions
-  const handleCanvasClick = useCallback((e: React.MouseEvent<HTMLCanvasElement>) => {
+  // Handle canvas interactions with improved coordinate calculation
+  const handleCanvasInteraction = useCallback((clientX: number, clientY: number, buttonType: 'left' | 'right' = 'left') => {
     const canvas = canvasRef.current;
     if (!canvas) return;
     
     const rect = canvas.getBoundingClientRect();
-    const x = Math.floor((e.clientX - rect.left) / (GRID_SIZE * zoom));
-    const y = Math.floor((e.clientY - rect.top) / (GRID_SIZE * zoom));
     
-    if (x >= 0 && x < levelData.width && y >= 0 && y < levelData.height) {
-      if (e.button === 2 || isErasing) {
-        onTilePlace(x, y, null);
+    // Calculate relative position within canvas
+    const relativeX = clientX - rect.left;
+    const relativeY = clientY - rect.top;
+    
+    // Get canvas actual size vs display size for proper scaling
+    const scaleX = canvas.width / rect.width;
+    const scaleY = canvas.height / rect.height;
+    
+    // Apply scaling to get canvas pixel coordinates
+    const canvasX = relativeX * scaleX;
+    const canvasY = relativeY * scaleY;
+    
+    // Convert to grid coordinates
+    const gridX = Math.floor(canvasX / (GRID_SIZE * zoom));
+    const gridY = Math.floor(canvasY / (GRID_SIZE * zoom));
+    
+    if (gridX >= 0 && gridX < levelData.width && gridY >= 0 && gridY < levelData.height) {
+      if (buttonType === 'right' || isErasing) {
+        onTilePlace(gridX, gridY, null);
       } else if (selectedTile) {
-        onTilePlace(x, y, selectedTile.id);
+        onTilePlace(gridX, gridY, selectedTile.id);
       }
     }
   }, [levelData.width, levelData.height, zoom, isErasing, selectedTile, onTilePlace]);
+
+  // Handle mouse clicks
+  const handleCanvasClick = useCallback((e: React.MouseEvent<HTMLCanvasElement>) => {
+    const buttonType = e.button === 2 ? 'right' : 'left';
+    handleCanvasInteraction(e.clientX, e.clientY, buttonType);
+  }, [handleCanvasInteraction]);
 
   // Preload tileset images for canvas rendering
   useEffect(() => {
@@ -100,8 +120,24 @@ const Canvas = memo<CanvasProps>(({
     if (!ctx) return;
     
     // Set canvas size
-    canvas.width = levelData.width * GRID_SIZE * zoom;
-    canvas.height = levelData.height * GRID_SIZE * zoom;
+    const canvasWidth = levelData.width * GRID_SIZE * zoom;
+    const canvasHeight = levelData.height * GRID_SIZE * zoom;
+    
+    canvas.width = canvasWidth;
+    canvas.height = canvasHeight;
+    
+    // On smaller screens, we need to scale the canvas display size while keeping the internal resolution
+    const containerWidth = canvas.parentElement?.clientWidth || canvasWidth;
+    const maxDisplayWidth = Math.min(containerWidth - 32, canvasWidth); // 32px for padding
+    const displayScale = maxDisplayWidth / canvasWidth;
+    
+    if (displayScale < 1) {
+      canvas.style.width = `${maxDisplayWidth}px`;
+      canvas.style.height = `${canvasHeight * displayScale}px`;
+    } else {
+      canvas.style.width = `${canvasWidth}px`;
+      canvas.style.height = `${canvasHeight}px`;
+    }
     
     // Clear canvas
     ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -231,8 +267,30 @@ const Canvas = memo<CanvasProps>(({
     });
   }, [levelData, showGrid, zoom, tiles, keyToPosition]);
 
+  const handleTouchStart = (e: React.TouchEvent<HTMLCanvasElement>) => {
+    e.preventDefault();
+    onDrawingStateChange(true);
+    const touch = e.touches[0];
+    if (touch) {
+      handleCanvasInteraction(touch.clientX, touch.clientY, 'left');
+    }
+  };
+
+  const handleTouchMove = (e: React.TouchEvent<HTMLCanvasElement>) => {
+    e.preventDefault();
+    const touch = e.touches[0];
+    if (touch) {
+      handleCanvasInteraction(touch.clientX, touch.clientY, 'left');
+    }
+  };
+
+  const handleTouchEnd = (e: React.TouchEvent<HTMLCanvasElement>) => {
+    e.preventDefault();
+    onDrawingStateChange(false);
+  };
+
   return (
-    <div className="flex-1 overflow-auto bg-gray-900 p-4 min-h-0">
+    <div className="flex-1 overflow-auto bg-gray-900 p-2 md:p-4 min-h-0">
       <canvas
         ref={canvasRef}
         onMouseDown={(e) => {
@@ -246,8 +304,12 @@ const Canvas = memo<CanvasProps>(({
         }}
         onMouseUp={() => onDrawingStateChange(false)}
         onMouseLeave={() => onDrawingStateChange(false)}
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
         onContextMenu={(e) => e.preventDefault()}
-        className="border border-gray-600 cursor-crosshair"
+        className="border border-gray-600 cursor-crosshair touch-manipulation max-w-full"
+        style={{ imageRendering: 'pixelated' }}
       />
     </div>
   );

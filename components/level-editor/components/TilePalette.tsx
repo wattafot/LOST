@@ -55,7 +55,7 @@ const TilePalette = memo<TilePaletteProps>(({
   };
 
   return (
-    <div className="w-80 bg-gray-800 border-r border-gray-700 flex flex-col h-full">
+    <div className="w-80 min-w-0 bg-gray-800 border-r border-gray-700 flex flex-col h-full">
       {/* Header */}
       <div className="flex-shrink-0 p-4 border-b border-gray-700">
         <h2 className="text-xl font-bold">Tile Palette</h2>

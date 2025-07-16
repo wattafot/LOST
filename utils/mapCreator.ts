@@ -1,0 +1,166 @@
+import { GameObject, PhaserGroup, Position, PhaserSceneContext } from '@/types/game';
+import { GAME_CONFIG, SPRITE_NAMES } from './gameConstants';
+
+export function createCrashSiteMap(scene: PhaserSceneContext, collisionLayer: PhaserGroup): { 
+  waterTiles: GameObject[], 
+  palmTreePositions: Position[] 
+} {
+  const { WIDTH: mapWidth, HEIGHT: mapHeight, TILE_SIZE: tileSize } = GAME_CONFIG.MAP;
+  const waterTiles: GameObject[] = [];
+
+  // Grass/jungle area (top part of island)
+  for (let x = 0; x < mapWidth; x++) {
+    for (let y = 0; y < 8; y++) {
+      scene.add.image(x * tileSize, y * tileSize, SPRITE_NAMES.TERRAIN.GRASS).setOrigin?.(0, 0);
+    }
+  }
+
+  // Add dirt road going north through the grass section (thinner)
+  const roadCenterX = 12; // Center of the map (around x=12)
+
+  for (let y = 0; y < 8; y++) {
+    // Through the entire grass section
+    // Make road only 2 tiles wide (center tile and one adjacent)
+    scene.add
+      .image(roadCenterX * tileSize, y * tileSize, SPRITE_NAMES.TERRAIN.DIRT)
+      .setOrigin?.(0, 0);
+    scene.add
+      .image((roadCenterX + 1) * tileSize, y * tileSize, SPRITE_NAMES.TERRAIN.DIRT)
+      .setOrigin?.(0, 0);
+  }
+
+  // Beach area in the middle
+  for (let x = 0; x < mapWidth; x++) {
+    for (let y = 8; y < 16; y++) {
+      scene.add.image(x * tileSize, y * tileSize, SPRITE_NAMES.TERRAIN.SAND).setOrigin?.(0, 0);
+    }
+  }
+
+  // Ocean (bottom) - impassable water with animation
+  for (let x = 0; x < mapWidth; x++) {
+    for (let y = 16; y < mapHeight; y++) {
+      const waterTile = scene.add
+        .image(x * tileSize, y * tileSize, SPRITE_NAMES.WATER[0])
+        .setOrigin?.(0, 0);
+      waterTiles.push(waterTile);
+      // Add water collision
+      const waterCollision = scene.physics.add.sprite(
+        x * tileSize + 16,
+        y * tileSize + 16,
+        SPRITE_NAMES.WATER[0]
+      );
+      waterCollision.setVisible?.(false);
+      waterCollision.body?.setImmovable(true);
+      collisionLayer.add(waterCollision);
+    }
+  }
+
+  // Add plane wreckage and vegetation
+  addPlaneWreckage(scene, collisionLayer);
+  const palmTreePositions = addVegetation(scene, collisionLayer);
+
+  return { waterTiles, palmTreePositions };
+}
+
+function addPlaneWreckage(scene: PhaserSceneContext, collisionLayer: PhaserGroup) {
+  // Add plane wreckage on the beach - main attraction! (positioned lower)
+  const planeX = 300;
+  const planeY = 380; // Moved down from 280 to 380
+  scene.add.image(planeX, planeY, SPRITE_NAMES.OBJECTS.PLANE);
+  
+  // Add collision for plane wreckage
+  const planeCollision = scene.physics.add.sprite(planeX, planeY, SPRITE_NAMES.OBJECTS.PLANE);
+  planeCollision.setVisible?.(false);
+  planeCollision.body?.setImmovable(true);
+  planeCollision.body?.setSize(220, 80); // Set collision size to match the massive plane
+  collisionLayer.add(planeCollision);
+
+  // Add more plane pieces scattered around (positioned lower)
+  const planePiece1 = scene.add.image(500, 450, SPRITE_NAMES.OBJECTS.PLANE);
+  planePiece1.setScale?.(0.5);
+  planePiece1.setRotation?.(0.5);
+  const planePiece1Collision = scene.physics.add.sprite(500, 450, SPRITE_NAMES.OBJECTS.PLANE);
+  planePiece1Collision.setVisible?.(false);
+  planePiece1Collision.setScale?.(0.5);
+  planePiece1Collision.body?.setSize(110, 40); // Half the size of main plane collision
+  planePiece1Collision.body?.setImmovable(true);
+  collisionLayer.add(planePiece1Collision);
+}
+
+function addVegetation(scene: PhaserSceneContext, collisionLayer: PhaserGroup): Position[] {
+  // Add palm trees to the grass/jungle area (positioned to avoid the dirt road)
+  const roadLeftBoundary = 12 * 32; // Left edge of road
+  const roadRightBoundary = (12 + 1) * 32 + 32; // Right edge of road
+
+  // Improved palm tree positions with better spacing
+  const palmPositions: Position[] = [
+    // Left side of road with better spacing
+    { x: 100, y: 100, scale: 1.1 },
+    { x: 200, y: 60, scale: 0.9 },
+    { x: 320, y: 120, scale: 1.2 },
+    { x: 150, y: 180, scale: 1.0 },
+    { x: 280, y: 40, scale: 0.8 },
+    { x: 80, y: 160, scale: 0.9 },
+    { x: 240, y: 140, scale: 0.7 },
+
+    // Right side of road with better spacing
+    { x: 480, y: 140, scale: 1.0 },
+    { x: 600, y: 80, scale: 0.8 },
+    { x: 720, y: 160, scale: 0.9 },
+    { x: 540, y: 50, scale: 0.85 },
+    { x: 680, y: 120, scale: 1.05 },
+    { x: 580, y: 180, scale: 1.1 },
+    { x: 750, y: 100, scale: 1.15 },
+  ];
+
+  palmPositions.forEach((pos) => {
+    const palm = scene.add.image(pos.x, pos.y, SPRITE_NAMES.OBJECTS.PALM);
+    palm.setScale?.(pos.scale || 1.0);
+
+    // Create collision sprite at the same position as the visual palm tree
+    const palmCollision = scene.physics.add.sprite(pos.x, pos.y + 64, SPRITE_NAMES.OBJECTS.PALM); // Adjust to bottom of tree
+    palmCollision.setVisible?.(false);
+    palmCollision.body?.setSize(32, 32); // Larger collision box for palm trees
+    palmCollision.body?.setImmovable(true);
+    collisionLayer.add(palmCollision);
+  });
+
+  // Improved bush positions to avoid overlap with palm trees
+  const bushPositions: Position[] = [
+    // Left side clusters - avoiding palm tree positions
+    { x: 130, y: 80 },   // Between palm trees
+    { x: 170, y: 120 },  // Between palm trees
+    { x: 260, y: 90 },   // Between palm trees
+    { x: 110, y: 140 },  // Between palm trees
+    { x: 300, y: 80 },   // Between palm trees
+    { x: 190, y: 160 },  // Between palm trees
+    { x: 250, y: 170 },  // Between palm trees
+    { x: 340, y: 160 },  // Edge area
+
+    // Right side clusters - avoiding palm tree positions
+    { x: 460, y: 110 },  // Between palm trees
+    { x: 620, y: 60 },   // Between palm trees
+    { x: 700, y: 140 },  // Between palm trees
+    { x: 520, y: 90 },   // Between palm trees
+    { x: 660, y: 100 },  // Between palm trees
+    { x: 600, y: 160 },  // Between palm trees
+    { x: 730, y: 130 },  // Between palm trees
+    { x: 560, y: 150 },  // Between palm trees
+  ];
+
+  bushPositions.forEach((pos) => {
+    const bush = scene.add.image(pos.x, pos.y, SPRITE_NAMES.OBJECTS.BUSH);
+    bush.setScale?.(0.5 + Math.random() * 0.4); // Random scale between 0.5-0.9 (smaller)
+
+    // Some bushes have collision
+    if (Math.random() > 0.6) {
+      const bushCollision = scene.physics.add.sprite(pos.x, pos.y, SPRITE_NAMES.OBJECTS.BUSH);
+      bushCollision.setVisible?.(false);
+      bushCollision.body?.setSize(12, 12); // Smaller collision for smaller bush
+      bushCollision.body?.setImmovable(true);
+      collisionLayer.add(bushCollision);
+    }
+  });
+
+  return palmPositions;
+}

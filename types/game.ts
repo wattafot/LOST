@@ -33,6 +33,8 @@ export interface FKey {
 }
 
 export interface PhaserText {
+  x: number;
+  y: number;
   setText?: (text: string) => void;
   setVisible?: (visible: boolean) => void;
   setOrigin?: (x: number, y?: number) => PhaserText;
@@ -94,6 +96,16 @@ export interface Position {
   x: number;
   y: number;
   scale?: number;
+  variant?: string;
+}
+
+export interface Suitcase {
+  id: string;
+  sprite: GameObject;
+  position: Position;
+  isWashingUp: boolean;
+  targetPosition: Position;
+  washUpStartTime: number;
 }
 
 export interface GameState {
@@ -118,4 +130,11 @@ export interface GameState {
     restDuration: number;
   };
   isDialogOpen: boolean;
+  suitcases: Suitcase[];
+  suitcaseSpawnState: {
+    lastSpawnTime: number;
+    nextSpawnTime: number;
+  };
+  suitcaseInteractPrompt: PhaserText | null;
+  feedbackText: PhaserText | null;
 }

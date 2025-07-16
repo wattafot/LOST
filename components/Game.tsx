@@ -20,7 +20,9 @@ import {
   createDialogSystem,
   handleNPCInteraction,
   animateWater,
-  initializeControls
+  initializeControls,
+  initializeSuitcaseSystem,
+  updateSuitcaseSystem
 } from "@/utils/systems";
 import { createInitialGameState } from "@/utils/gameStateUtils";
 import { GAME_CONFIG } from "@/utils/gameConstants";
@@ -156,6 +158,9 @@ function create(this: PhaserSceneContext) {
     }
 
     createAnimals(this, gameState);
+    
+    // Initialize suitcase system
+    initializeSuitcaseSystem(this, gameState);
   } catch (error) {
     console.error("Error in create function:", error);
   }
@@ -173,6 +178,9 @@ function update(this: PhaserSceneContext) {
     }
     
     animateAnimals(gameState, this);
+    
+    // Update suitcase system
+    updateSuitcaseSystem(this, gameState);
   } catch (error) {
     console.error("Error in update function:", error);
   }

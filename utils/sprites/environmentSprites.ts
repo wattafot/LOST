@@ -1,4 +1,5 @@
 import { PhaserSceneContext } from '@/types/game';
+import { createPalmTreeSprites } from './palmTreeSprites';
 import { SPRITE_NAMES } from '../gameConstants';
 
 export function createTerrainTextures(scene: PhaserSceneContext): void {
@@ -14,9 +15,10 @@ export function createWaterTextures(scene: PhaserSceneContext): void {
 }
 
 export function createObjectSprites(scene: PhaserSceneContext): void {
-  createPalmTreeSprite(scene);
+  createPalmTreeSprites(scene);
   createBushSprite(scene);
   createPlaneSprite(scene);
+  createSuitcaseSprite(scene);
 }
 
 export function createNPCSprite(scene: PhaserSceneContext): void {
@@ -113,26 +115,6 @@ function createWaterTexture(scene: PhaserSceneContext, name: string, opacity: nu
   graphics.destroy();
 }
 
-function createPalmTreeSprite(scene: PhaserSceneContext): void {
-  const palmGraphics = scene.add.graphics();
-  
-  // Tree trunk (brown)
-  palmGraphics.fillStyle(0x8b4513);
-  palmGraphics.fillRect(12, 40, 8, 80);
-  
-  // Large simple green circle for leaves (this MUST be visible)
-  palmGraphics.fillStyle(0x228b22);
-  palmGraphics.fillCircle(16, 30, 25);
-  
-  // Additional leaf details
-  palmGraphics.fillEllipse(16, 15, 35, 15);
-  palmGraphics.fillEllipse(16, 45, 30, 10);
-  palmGraphics.fillEllipse(35, 30, 15, 8);
-  palmGraphics.fillEllipse(-3, 30, 15, 8);
-  
-  palmGraphics.generateTexture("palm", 64, 120);
-  palmGraphics.destroy();
-}
 
 function createBushSprite(scene: PhaserSceneContext): void {
   const graphics = scene.add.graphics();
@@ -170,5 +152,39 @@ function createPlaneSprite(scene: PhaserSceneContext): void {
   graphics.fillRect(25, 75, 10, 6);
   
   graphics.generateTexture(SPRITE_NAMES.OBJECTS.PLANE, 220, 80);
+  graphics.destroy();
+}
+
+function createSuitcaseSprite(scene: PhaserSceneContext): void {
+  const graphics = scene.add.graphics();
+  
+  // Main suitcase body (dark brown/leather color)
+  graphics.fillStyle(0x654321);
+  graphics.fillRoundedRect(2, 8, 28, 18, 2);
+  
+  // Suitcase handle (metallic)
+  graphics.fillStyle(0x808080);
+  graphics.fillRoundedRect(13, 4, 6, 6, 1);
+  graphics.fillStyle(0x000000);
+  graphics.fillRoundedRect(14, 5, 4, 4, 1);
+  
+  // Corner reinforcements (metallic corners)
+  graphics.fillStyle(0x708090);
+  graphics.fillRect(2, 8, 3, 3);
+  graphics.fillRect(27, 8, 3, 3);
+  graphics.fillRect(2, 23, 3, 3);
+  graphics.fillRect(27, 23, 3, 3);
+  
+  // Locks/clasps
+  graphics.fillStyle(0x2c2c2c);
+  graphics.fillRect(8, 7, 2, 2);
+  graphics.fillRect(22, 7, 2, 2);
+  
+  // Handle strap details
+  graphics.fillStyle(0x4a3728);
+  graphics.fillRect(6, 6, 2, 1);
+  graphics.fillRect(24, 6, 2, 1);
+  
+  graphics.generateTexture(SPRITE_NAMES.OBJECTS.SUITCASE, 32, 32);
   graphics.destroy();
 }

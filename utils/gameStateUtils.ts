@@ -15,7 +15,6 @@ export function createInitialGameState(): GameState {
     namePopup: null,
     parrot: null,
     snake: null,
-    palmTreePositions: [],
     parrotState: {
       currentTreeIndex: 0,
       targetTreeIndex: 1,

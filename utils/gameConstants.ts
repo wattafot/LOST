@@ -75,9 +75,6 @@ export const SPRITE_NAMES = {
     DIRT: "dirt",
   },
   OBJECTS: {
-    PALM_TREE_1: "palm_tree_1",
-    PALM_TREE_2: "palm_tree_2", 
-    PALM_TREE_3: "palm_tree_3",
     BUSH: "bush",
     PLANE: "plane",
     SUITCASE: "suitcase",

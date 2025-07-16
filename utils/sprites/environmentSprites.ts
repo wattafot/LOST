@@ -1,5 +1,4 @@
 import { PhaserSceneContext } from '@/types/game';
-import { createPalmTreeSprites } from './palmTreeSprites';
 import { SPRITE_NAMES } from '../gameConstants';
 
 export function createTerrainTextures(scene: PhaserSceneContext): void {
@@ -15,7 +14,6 @@ export function createWaterTextures(scene: PhaserSceneContext): void {
 }
 
 export function createObjectSprites(scene: PhaserSceneContext): void {
-  createPalmTreeSprites(scene);
   createBushSprite(scene);
   createPlaneSprite(scene);
   createSuitcaseSprite(scene);

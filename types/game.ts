@@ -121,7 +121,6 @@ export interface GameState {
   namePopup: PhaserText | null;
   parrot: GameObject | null;
   snake: GameObject | null;
-  palmTreePositions: Position[];
   parrotState: {
     currentTreeIndex: number;
     targetTreeIndex: number;

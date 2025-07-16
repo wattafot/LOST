@@ -7,8 +7,11 @@ interface Tile {
   id: string;
   name: string;
   sprite: string;
-  category: 'terrain' | 'objects' | 'water' | 'decorations';
+  category: 'terrain' | 'objects' | 'water' | 'decorations' | 'characters';
   color: string; // Fallback color for display
+  frameWidth?: number; // For sprite sheets
+  frameHeight?: number; // For sprite sheets
+  frameIndex?: number; // Which frame to display
 }
 
 interface LevelData {
@@ -27,25 +30,111 @@ interface LevelData {
 const AVAILABLE_TILES: Tile[] = [
   // Terrain tiles
   { id: 'grass', name: 'Grass', sprite: '/sprites/tilesets/grass.png', category: 'terrain', color: '#32CD32' },
-  { id: 'sand', name: 'Sand', sprite: '/sprites/tilesets/floors/flooring.png', category: 'terrain', color: '#F4A460' },
-  { id: 'dirt', name: 'Dirt', sprite: '/sprites/tilesets/floors/flooring.png', category: 'terrain', color: '#8B4513' },
+  { id: 'flooring', name: 'Flooring', sprite: '/sprites/tilesets/floors/flooring.png', category: 'terrain', color: '#8B4513' },
+  { id: 'carpet', name: 'Carpet', sprite: '/sprites/tilesets/floors/carpet.png', category: 'terrain', color: '#8B0000' },
+  { id: 'wooden', name: 'Wooden Floor', sprite: '/sprites/tilesets/floors/wooden.png', category: 'terrain', color: '#DEB887' },
   
   // Water tiles
   { id: 'water1', name: 'Water 1', sprite: '/sprites/tilesets/water1.png', category: 'water', color: '#4682B4' },
   { id: 'water2', name: 'Water 2', sprite: '/sprites/tilesets/water2.png', category: 'water', color: '#5F9EA0' },
   { id: 'water3', name: 'Water 3', sprite: '/sprites/tilesets/water3.png', category: 'water', color: '#6495ED' },
+  { id: 'water4', name: 'Water 4', sprite: '/sprites/tilesets/water4.png', category: 'water', color: '#87CEEB' },
+  { id: 'water5', name: 'Water 5', sprite: '/sprites/tilesets/water5.png', category: 'water', color: '#20B2AA' },
+  { id: 'water6', name: 'Water 6', sprite: '/sprites/tilesets/water6.png', category: 'water', color: '#48D1CC' },
+  { id: 'water_decorations', name: 'Water Deco', sprite: '/sprites/tilesets/water_decorations.png', category: 'water', color: '#40E0D0' },
+  { id: 'water_lillies', name: 'Water Lillies', sprite: '/sprites/tilesets/water_lillies.png', category: 'water', color: '#00CED1' },
   
   // Objects
-  { id: 'chest', name: 'Chest', sprite: '/sprites/objects/chest_01.png', category: 'objects', color: '#8B4513' },
-  { id: 'rock', name: 'Rock', sprite: '/sprites/objects/rock_in_water_01.png', category: 'objects', color: '#696969' },
+  { id: 'chest1', name: 'Chest 1', sprite: '/sprites/objects/chest_01.png', category: 'objects', color: '#8B4513' },
+  { id: 'chest2', name: 'Chest 2', sprite: '/sprites/objects/chest_02.png', category: 'objects', color: '#A0522D' },
+  { id: 'rock1', name: 'Rock 1', sprite: '/sprites/objects/rock_in_water_01.png', category: 'objects', color: '#696969' },
+  { id: 'rock2', name: 'Rock 2', sprite: '/sprites/objects/rock_in_water_02.png', category: 'objects', color: '#708090' },
+  { id: 'rock3', name: 'Rock 3', sprite: '/sprites/objects/rock_in_water_03.png', category: 'objects', color: '#778899' },
+  { id: 'rock4', name: 'Rock 4', sprite: '/sprites/objects/rock_in_water_04.png', category: 'objects', color: '#2F4F4F' },
+  { id: 'rock5', name: 'Rock 5', sprite: '/sprites/objects/rock_in_water_05.png', category: 'objects', color: '#696969' },
+  { id: 'rock6', name: 'Rock 6', sprite: '/sprites/objects/rock_in_water_06.png', category: 'objects', color: '#808080' },
   
   // Decorations
   { id: 'fence', name: 'Fence', sprite: '/sprites/tilesets/fences.png', category: 'decorations', color: '#8B4513' },
+  { id: 'walls', name: 'Walls', sprite: '/sprites/tilesets/walls/walls.png', category: 'decorations', color: '#A0522D' },
+  { id: 'wooden_door', name: 'Wooden Door', sprite: '/sprites/tilesets/walls/wooden_door.png', category: 'decorations', color: '#DEB887' },
+  { id: 'wooden_door_b', name: 'Wooden Door B', sprite: '/sprites/tilesets/walls/wooden_door_b.png', category: 'decorations', color: '#D2691E' },
+  { id: 'decor_8x8', name: 'Small Decor', sprite: '/sprites/tilesets/decor_8x8.png', category: 'decorations', color: '#228B22' },
+  { id: 'dust_particles', name: 'Dust Particles', sprite: '/sprites/particles/dust_particles_01.png', category: 'decorations', color: '#F5DEB3' },
+  
+  // Characters
+  { id: 'player', name: 'Player', sprite: '/sprites/characters/player.png', category: 'characters', color: '#FFA500', frameWidth: 48, frameHeight: 48, frameIndex: 0 },
+  { id: 'skeleton', name: 'Skeleton', sprite: '/sprites/characters/skeleton.png', category: 'characters', color: '#F5F5DC', frameWidth: 48, frameHeight: 48, frameIndex: 0 },
+  { id: 'skeleton_swordless', name: 'Skeleton (No Sword)', sprite: '/sprites/characters/skeleton_swordless.png', category: 'characters', color: '#DCDCDC', frameWidth: 48, frameHeight: 48, frameIndex: 0 },
+  { id: 'slime', name: 'Slime', sprite: '/sprites/characters/slime.png', category: 'characters', color: '#32CD32', frameWidth: 32, frameHeight: 32, frameIndex: 0 },
 ];
 
 const GRID_SIZE = 32;
 const DEFAULT_LEVEL_WIDTH = 25;
 const DEFAULT_LEVEL_HEIGHT = 19;
+
+// Sprite Image Component
+const SpriteImage = ({ tile, size = 32 }: { tile: Tile; size?: number }) => {
+  const [imageLoaded, setImageLoaded] = useState(false);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+    
+    canvas.width = size;
+    canvas.height = size;
+    
+    const img = new Image();
+    img.onload = () => {
+      ctx.clearRect(0, 0, size, size);
+      
+      if (tile.frameWidth && tile.frameHeight) {
+        // Handle sprite sheet
+        const frameIndex = tile.frameIndex || 0;
+        const framesPerRow = Math.floor(img.width / tile.frameWidth);
+        const frameX = (frameIndex % framesPerRow) * tile.frameWidth;
+        const frameY = Math.floor(frameIndex / framesPerRow) * tile.frameHeight;
+        
+        ctx.drawImage(
+          img,
+          frameX, frameY, tile.frameWidth, tile.frameHeight,
+          0, 0, size, size
+        );
+      } else {
+        // Handle regular image
+        ctx.drawImage(img, 0, 0, size, size);
+      }
+      
+      setImageLoaded(true);
+    };
+    
+    img.onerror = () => {
+      // Fallback to colored rectangle
+      ctx.fillStyle = tile.color;
+      ctx.fillRect(0, 0, size, size);
+      setImageLoaded(true);
+    };
+    
+    img.src = tile.sprite;
+  }, [tile, size]);
+  
+  if (!imageLoaded) {
+    return (
+      <div 
+        className="flex items-center justify-center"
+        style={{ width: size, height: size, backgroundColor: tile.color }}
+      >
+        <div className="text-white text-xs">...</div>
+      </div>
+    );
+  }
+  
+  return <canvas ref={canvasRef} width={size} height={size} />;
+};
 
 export default function LevelEditor() {
   const [levelData, setLevelData] = useState<LevelData>({
@@ -66,6 +155,7 @@ export default function LevelEditor() {
   const [showGrid, setShowGrid] = useState(true);
   const [activeCategory, setActiveCategory] = useState<string>('terrain');
   const [zoom, setZoom] = useState(1);
+  const [loadedImages, setLoadedImages] = useState<{ [key: string]: HTMLImageElement }>({});
   
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -137,6 +227,41 @@ export default function LevelEditor() {
     }
   };
   
+  // Preload images for canvas rendering
+  useEffect(() => {
+    const imagesToLoad = AVAILABLE_TILES.filter(tile => 
+      !loadedImages[tile.id]
+    );
+    
+    if (imagesToLoad.length === 0) return;
+    
+    imagesToLoad.forEach(tile => {
+      const img = new Image();
+      img.onload = () => {
+        setLoadedImages(prev => ({ ...prev, [tile.id]: img }));
+      };
+      img.onerror = () => {
+        // Create a fallback colored canvas
+        const fallbackCanvas = document.createElement('canvas');
+        fallbackCanvas.width = GRID_SIZE;
+        fallbackCanvas.height = GRID_SIZE;
+        const fallbackCtx = fallbackCanvas.getContext('2d');
+        if (fallbackCtx) {
+          fallbackCtx.fillStyle = tile.color;
+          fallbackCtx.fillRect(0, 0, GRID_SIZE, GRID_SIZE);
+          fallbackCtx.fillStyle = 'white';
+          fallbackCtx.font = '12px Arial';
+          fallbackCtx.textAlign = 'center';
+          fallbackCtx.fillText(tile.name.charAt(0), GRID_SIZE/2, GRID_SIZE/2 + 4);
+        }
+        const fallbackImg = new Image();
+        fallbackImg.src = fallbackCanvas.toDataURL();
+        setLoadedImages(prev => ({ ...prev, [tile.id]: fallbackImg }));
+      };
+      img.src = tile.sprite;
+    });
+  }, [loadedImages]);
+
   // Render canvas
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -180,8 +305,36 @@ export default function LevelEditor() {
     Object.entries(levelData.tiles).forEach(([key, tileId]) => {
       const { x, y } = keyToPosition(key);
       const tile = AVAILABLE_TILES.find(t => t.id === tileId);
+      const img = loadedImages[tileId];
       
-      if (tile) {
+      if (tile && img) {
+        if (tile.frameWidth && tile.frameHeight) {
+          // Handle sprite sheet
+          const frameIndex = tile.frameIndex || 0;
+          const framesPerRow = Math.floor(img.width / tile.frameWidth);
+          const frameX = (frameIndex % framesPerRow) * tile.frameWidth;
+          const frameY = Math.floor(frameIndex / framesPerRow) * tile.frameHeight;
+          
+          ctx.drawImage(
+            img,
+            frameX, frameY, tile.frameWidth, tile.frameHeight,
+            x * GRID_SIZE * zoom,
+            y * GRID_SIZE * zoom,
+            GRID_SIZE * zoom,
+            GRID_SIZE * zoom
+          );
+        } else {
+          // Handle regular image
+          ctx.drawImage(
+            img,
+            x * GRID_SIZE * zoom,
+            y * GRID_SIZE * zoom,
+            GRID_SIZE * zoom,
+            GRID_SIZE * zoom
+          );
+        }
+      } else if (tile) {
+        // Fallback to colored rectangle
         ctx.fillStyle = tile.color;
         ctx.fillRect(
           x * GRID_SIZE * zoom,
@@ -202,7 +355,7 @@ export default function LevelEditor() {
       }
     });
     
-  }, [levelData, showGrid, zoom]);
+  }, [levelData, showGrid, zoom, loadedImages]);
   
   // Save level to JSON
   const saveLevel = () => {
@@ -316,10 +469,11 @@ export default function LevelEditor() {
                     ? 'border-blue-500 bg-blue-600 bg-opacity-20'
                     : 'border-gray-600 hover:border-gray-500'
                 }`}
-                style={{ backgroundColor: tile.color + '40' }}
               >
-                <div className="w-full h-8 rounded mb-1" style={{ backgroundColor: tile.color }}></div>
-                <div className="text-xs text-center">{tile.name}</div>
+                <div className="w-full h-8 rounded mb-1 flex items-center justify-center">
+                  <SpriteImage tile={tile} size={32} />
+                </div>
+                <div className="text-xs text-center text-white">{tile.name}</div>
               </button>
             ))}
           </div>

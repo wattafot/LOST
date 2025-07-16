@@ -24,5 +24,12 @@ export function createInitialGameState(): GameState {
       restDuration: GAME_CONFIG.PARROT.REST_DURATION.MIN,
     },
     isDialogOpen: false,
+    suitcases: [],
+    suitcaseSpawnState: {
+      lastSpawnTime: 0,
+      nextSpawnTime: 0,
+    },
+    suitcaseInteractPrompt: null,
+    feedbackText: null,
   };
 }

@@ -45,6 +45,11 @@ export const GAME_CONFIG = {
     HEIGHT: 19,
     TILE_SIZE: 32,
   },
+  SUITCASE: {
+    SPAWN_INTERVAL: { MIN: 30000, MAX: 60000 }, // 30-60 seconds
+    INTERACTION_DISTANCE: 50,
+    MAX_ACTIVE: 3,
+  },
 } as const;
 
 export const SPRITE_NAMES = {
@@ -70,9 +75,12 @@ export const SPRITE_NAMES = {
     DIRT: "dirt",
   },
   OBJECTS: {
-    PALM: "palm",
+    PALM_TREE_1: "palm_tree_1",
+    PALM_TREE_2: "palm_tree_2", 
+    PALM_TREE_3: "palm_tree_3",
     BUSH: "bush",
     PLANE: "plane",
+    SUITCASE: "suitcase",
   },
 } as const;
 

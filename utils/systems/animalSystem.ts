@@ -2,12 +2,12 @@ import { GameState, PhaserSceneContext } from '@/types/game';
 import { GAME_CONFIG, SPRITE_NAMES } from '../gameConstants';
 
 export function createAnimals(scene: PhaserSceneContext, gameState: GameState): void {
-  createParrot(scene, gameState);
+  // createParrot(scene, gameState); // Disabled until new palm trees are implemented
   createSnake(scene, gameState);
 }
 
 export function animateAnimals(gameState: GameState, scene: PhaserSceneContext): void {
-  animateParrot(gameState, scene);
+  // animateParrot(gameState, scene); // Disabled until new palm trees are implemented
   animateSnake(gameState, scene);
 }
 

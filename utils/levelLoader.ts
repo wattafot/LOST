@@ -16,28 +16,79 @@ export interface LevelData {
 
 // Map tile IDs to sprite names
 const TILE_TO_SPRITE_MAP: { [key: string]: string } = {
+  // Terrain
   'grass': SPRITE_NAMES.TERRAIN.GRASS,
-  'sand': SPRITE_NAMES.TERRAIN.SAND,
-  'dirt': SPRITE_NAMES.TERRAIN.DIRT,
+  'flooring': SPRITE_NAMES.TERRAIN.SAND,
+  'carpet': SPRITE_NAMES.TERRAIN.DIRT,
+  'wooden': SPRITE_NAMES.TERRAIN.DIRT,
+  
+  // Water
   'water1': SPRITE_NAMES.WATER[0],
   'water2': SPRITE_NAMES.WATER[1],
   'water3': SPRITE_NAMES.WATER[2],
-  'chest': 'chest',
-  'rock': 'rock_in_water',
+  'water4': SPRITE_NAMES.WATER[0],
+  'water5': SPRITE_NAMES.WATER[1],
+  'water6': SPRITE_NAMES.WATER[2],
+  'water_decorations': SPRITE_NAMES.WATER[0],
+  'water_lillies': SPRITE_NAMES.WATER[1],
+  
+  // Objects
+  'chest1': 'chest',
+  'chest2': 'chest',
+  'rock1': 'rock_in_water',
+  'rock2': 'rock_in_water',
+  'rock3': 'rock_in_water',
+  'rock4': 'rock_in_water',
+  'rock5': 'rock_in_water',
+  'rock6': 'rock_in_water',
+  
+  // Decorations
   'fence': 'fence',
+  'walls': 'fence',
+  'wooden_door': 'fence',
+  'wooden_door_b': 'fence',
+  'decor_8x8': 'fence',
+  'dust_particles': 'fence',
+  
+  // Characters (for sprite sheet rendering)
+  'player': SPRITE_NAMES.PLAYER.IDLE,
+  'skeleton': 'npc',
+  'skeleton_swordless': 'npc',
+  'slime': 'npc',
 };
 
 // Map tile IDs to types
 const TILE_TYPES: { [key: string]: 'terrain' | 'water' | 'object' } = {
   'grass': 'terrain',
-  'sand': 'terrain',
-  'dirt': 'terrain',
+  'flooring': 'terrain',
+  'carpet': 'terrain',
+  'wooden': 'terrain',
   'water1': 'water',
   'water2': 'water',
   'water3': 'water',
-  'chest': 'object',
-  'rock': 'object',
+  'water4': 'water',
+  'water5': 'water',
+  'water6': 'water',
+  'water_decorations': 'water',
+  'water_lillies': 'water',
+  'chest1': 'object',
+  'chest2': 'object',
+  'rock1': 'object',
+  'rock2': 'object',
+  'rock3': 'object',
+  'rock4': 'object',
+  'rock5': 'object',
+  'rock6': 'object',
   'fence': 'object',
+  'walls': 'object',
+  'wooden_door': 'object',
+  'wooden_door_b': 'object',
+  'decor_8x8': 'object',
+  'dust_particles': 'object',
+  'player': 'object',
+  'skeleton': 'object',
+  'skeleton_swordless': 'object',
+  'slime': 'object',
 };
 
 export function loadCustomLevel(

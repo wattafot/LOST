@@ -75,7 +75,7 @@ const Toolbar = memo<ToolbarProps>(({
 
   return (
     <>
-      <div className="bg-gray-800 border-b border-gray-700 px-4 py-4 flex items-center">
+      <div className="bg-gray-800 border-b border-gray-700 px-4 h-[61px] flex items-center">
         <div className="flex flex-wrap items-center gap-3 w-full">
           {/* Level Name */}
           <div className="flex items-center gap-2">

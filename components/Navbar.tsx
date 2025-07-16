@@ -16,6 +16,7 @@ import {
   Camera,
   MessageCircle,
   Gamepad2,
+  Grid,
 } from "lucide-react"
 import Link from "next/link"
 
@@ -28,6 +29,7 @@ export default function Navbar() {
     { name: "Screenshot Guesser", href: "/guess-episode", icon: Camera },
     { name: "Quote Guesser", href: "/guess-quote", icon: MessageCircle },
     { name: "Island Adventure", href: "/game", icon: Gamepad2 },
+    { name: "Level Editor", href: "/level-editor", icon: Grid },
   ]
 
   return (

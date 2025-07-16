@@ -7,11 +7,9 @@ import {
   createPlayerSprites,
   createParrotSprites,
   createSnakeSprite,
-  createTerrainTextures,
-  createWaterTextures,
-  createObjectSprites,
-  createNPCSprite
+  createObjectSprites
 } from "@/utils/sprites";
+import { preloadSprites } from "@/utils/sprites/assetLoader";
 import { createCrashSiteMap } from "@/utils/mapCreator";
 import {
   handlePlayerMovement,
@@ -45,10 +43,16 @@ function GameComponent() {
 
         const config = {
           type: Phaser.CANVAS,
-          width: GAME_CONFIG.CANVAS.WIDTH,
-          height: GAME_CONFIG.CANVAS.HEIGHT,
+          width: window.innerWidth,
+          height: window.innerHeight - 200, // Account for header/footer
           parent: gameRef.current,
           backgroundColor: GAME_CONFIG.CANVAS.BACKGROUND_COLOR,
+          scale: {
+            mode: Phaser.Scale.RESIZE,
+            autoCenter: Phaser.Scale.CENTER_BOTH,
+            width: window.innerWidth,
+            height: window.innerHeight - 200,
+          },
           physics: {
             default: "arcade",
             arcade: {
@@ -90,16 +94,11 @@ function GameComponent() {
   }, []);
 
   return (
-    <div className="flex flex-col items-center">
-      <div className="mb-4 text-center">
-        <h2 className="text-2xl font-bold text-white mb-2">
-          LOST Island Adventure
-        </h2>
-        <p className="text-gray-300">Use WASD or Arrow Keys to move</p>
-      </div>
+    <div className="w-full h-screen flex flex-col">
       <div
         ref={gameRef}
-        className="border-2 border-gray-600 rounded-lg overflow-hidden"
+        className="flex-1 w-full"
+        style={{ minHeight: 'calc(100vh - 200px)' }}
       />
     </div>
   );
@@ -111,17 +110,20 @@ export default dynamic(() => Promise.resolve(GameComponent), {
 });
 
 function preload(this: PhaserSceneContext) {
-  createPlayerSprites(this);
-  createNPCSprite(this);
-  createTerrainTextures(this);
-  createWaterTextures(this);
-  createObjectSprites(this);
+  // Load real sprite assets
+  preloadSprites(this);
+  
+  // Still create programmatically generated sprites for those we don't have assets for
   createParrotSprites(this);
   createSnakeSprite(this);
+  createObjectSprites(this);
 }
 
 function create(this: PhaserSceneContext) {
   try {
+    // Create player animations after assets are loaded
+    createPlayerSprites(this);
+    
     gameState.collisionLayer = this.physics.add.staticGroup();
 
     const mapResult = createCrashSiteMap(this as PhaserSceneContext, gameState.collisionLayer!);

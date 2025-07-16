@@ -40,11 +40,10 @@ function updatePlayerSprite(gameState: GameState, scene: PhaserSceneContext, isM
   if (!gameState.player) return;
 
   if (isMoving) {
-    const walkSpeed = 300;
-    const walkFrame = Math.floor(scene.time.now / walkSpeed) % 2;
-    const texture = walkFrame === 0 ? SPRITE_NAMES.PLAYER.WALK1 : SPRITE_NAMES.PLAYER.WALK2;
-    gameState.player.setTexture?.(texture);
+    // Play walking animation
+    gameState.player.anims?.play('player_walk', true);
   } else {
-    gameState.player.setTexture?.(SPRITE_NAMES.PLAYER.IDLE);
+    // Play idle animation
+    gameState.player.anims?.play('player_idle', true);
   }
 }

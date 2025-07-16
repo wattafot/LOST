@@ -126,7 +126,6 @@ function create(this: PhaserSceneContext) {
 
     const mapResult = createCrashSiteMap(this as PhaserSceneContext, gameState.collisionLayer!);
     gameState.waterTiles = mapResult.waterTiles;
-    gameState.palmTreePositions = mapResult.palmTreePositions;
 
     gameState.player = this.physics.add.sprite(
       GAME_CONFIG.PLAYER.START_X, 

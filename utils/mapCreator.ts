@@ -2,8 +2,7 @@ import { GameObject, PhaserGroup, Position, PhaserSceneContext } from '@/types/g
 import { GAME_CONFIG, SPRITE_NAMES } from './gameConstants';
 
 export function createCrashSiteMap(scene: PhaserSceneContext, collisionLayer: PhaserGroup): { 
-  waterTiles: GameObject[], 
-  palmTreePositions: Position[] 
+  waterTiles: GameObject[]
 } {
   const { WIDTH: mapWidth, HEIGHT: mapHeight, TILE_SIZE: tileSize } = GAME_CONFIG.MAP;
   const waterTiles: GameObject[] = [];
@@ -58,11 +57,10 @@ export function createCrashSiteMap(scene: PhaserSceneContext, collisionLayer: Ph
   // Add plane wreckage
   addPlaneWreckage(scene, collisionLayer);
 
-  // Add vegetation
-  const palmTreePositions = addPalmTrees(scene, collisionLayer);
+  // Add bushes for decoration
   addBushes(scene, collisionLayer);
 
-  return { waterTiles, palmTreePositions };
+  return { waterTiles };
 }
 
 function addPlaneWreckage(scene: PhaserSceneContext, collisionLayer: PhaserGroup) {
@@ -90,43 +88,6 @@ function addPlaneWreckage(scene: PhaserSceneContext, collisionLayer: PhaserGroup
   collisionLayer.add(planePiece1Collision);
 }
 
-function addPalmTrees(scene: PhaserSceneContext, collisionLayer: PhaserGroup): Position[] {
-  // Palm tree positions with variety in types and scales
-  const palmPositions: Position[] = [
-    // Left side of road - using different palm tree variants
-    { x: 100, y: 100, scale: 1.1, variant: SPRITE_NAMES.OBJECTS.PALM_TREE_1 },
-    { x: 200, y: 60, scale: 0.9, variant: SPRITE_NAMES.OBJECTS.PALM_TREE_3 },
-    { x: 320, y: 120, scale: 1.2, variant: SPRITE_NAMES.OBJECTS.PALM_TREE_2 },
-    { x: 150, y: 180, scale: 1.0, variant: SPRITE_NAMES.OBJECTS.PALM_TREE_1 },
-    { x: 280, y: 40, scale: 0.8, variant: SPRITE_NAMES.OBJECTS.PALM_TREE_3 },
-    { x: 80, y: 160, scale: 0.9, variant: SPRITE_NAMES.OBJECTS.PALM_TREE_2 },
-    { x: 240, y: 140, scale: 0.7, variant: SPRITE_NAMES.OBJECTS.PALM_TREE_3 },
-
-    // Right side of road - mixed variants for natural look
-    { x: 480, y: 140, scale: 1.0, variant: SPRITE_NAMES.OBJECTS.PALM_TREE_2 },
-    { x: 600, y: 80, scale: 0.8, variant: SPRITE_NAMES.OBJECTS.PALM_TREE_1 },
-    { x: 720, y: 160, scale: 0.9, variant: SPRITE_NAMES.OBJECTS.PALM_TREE_3 },
-    { x: 540, y: 50, scale: 0.85, variant: SPRITE_NAMES.OBJECTS.PALM_TREE_1 },
-    { x: 680, y: 120, scale: 1.05, variant: SPRITE_NAMES.OBJECTS.PALM_TREE_2 },
-    { x: 580, y: 180, scale: 1.1, variant: SPRITE_NAMES.OBJECTS.PALM_TREE_1 },
-    { x: 750, y: 100, scale: 1.15, variant: SPRITE_NAMES.OBJECTS.PALM_TREE_2 },
-  ];
-
-  palmPositions.forEach((pos) => {
-    const variant = pos.variant || SPRITE_NAMES.OBJECTS.PALM_TREE_1;
-    const palm = scene.add.image(pos.x, pos.y, variant);
-    palm.setScale?.(pos.scale || 1.0);
-
-    // Create collision sprite at the base of the tree
-    const palmCollision = scene.physics.add.sprite(pos.x, pos.y + 64, variant);
-    palmCollision.setVisible?.(false);
-    palmCollision.body?.setSize(32, 32);
-    palmCollision.body?.setImmovable(true);
-    collisionLayer.add(palmCollision);
-  });
-
-  return palmPositions;
-}
 
 function addBushes(scene: PhaserSceneContext, collisionLayer: PhaserGroup): void {
   const bushPositions: Position[] = [

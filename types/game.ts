@@ -70,6 +70,19 @@ export interface PhaserScene {
   time: {
     now: number;
   };
+  load: {
+    image: (key: string, path: string) => void;
+    spritesheet: (key: string, path: string, config: { frameWidth: number; frameHeight: number }) => void;
+  };
+  anims: {
+    create: (config: {
+      key: string;
+      frames: unknown[];
+      frameRate: number;
+      repeat: number;
+    }) => void;
+    generateFrameNumbers: (key: string, config: { start: number; end: number }) => unknown[];
+  };
 }
 
 export interface PhaserSceneContext extends PhaserScene {

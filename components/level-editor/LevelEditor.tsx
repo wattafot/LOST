@@ -1,7 +1,6 @@
 "use client";
 
-import { useMemo } from 'react';
-import { generateAvailableTiles } from '../utils/tileUtils';
+import { useState, useCallback } from 'react';
 import { useLevelEditor } from './hooks/useLevelEditor';
 import TilePalette from './components/TilePalette';
 import Toolbar from './components/Toolbar';
@@ -12,20 +11,18 @@ export default function LevelEditor() {
     // State
     levelData,
     selectedTile,
-    isDrawing,
+    isDrawing: _isDrawing,
     showGrid,
-    activeCategory,
     zoom,
     history,
     historyIndex,
     isErasing,
-    mounted,
+    mounted: _mounted,
     // Actions
     setLevelData,
     setSelectedTile,
     setIsDrawing,
     setShowGrid,
-    setActiveCategory,
     setZoom,
     setIsErasing,
     placeTile,
@@ -37,10 +34,10 @@ export default function LevelEditor() {
     exportToGameFormat,
   } = useLevelEditor();
 
-  // Memoize tiles to prevent unnecessary re-renders
-  const availableTiles = useMemo(() => generateAvailableTiles(), []);
+  // State for dynamic tiles (includes tiles created from tileset viewer)
+  const [dynamicTiles, setDynamicTiles] = useState([]);
 
-  // Memoize derived state
+  // Derived state
   const canUndo = historyIndex > 0;
   const canRedo = historyIndex < history.length - 1;
 
@@ -49,10 +46,22 @@ export default function LevelEditor() {
     placeTile(x, y, tileId);
   };
 
-  const handleTileSelect = (tile: typeof availableTiles[0]) => {
+  const handleTileSelect = useCallback((tile) => {
+    console.log('🎯 LEVEL EDITOR - Tile selected:', tile);
+    
+    // Add tile to dynamic tiles if not exists
+    setDynamicTiles(prev => {
+      const exists = prev.find(t => t.id === tile.id);
+      if (!exists) {
+        console.log('➕ Adding tile to dynamic tiles:', tile.id);
+        return [...prev, tile];
+      }
+      return prev;
+    });
+    
     setSelectedTile(tile);
     setIsErasing(false);
-  };
+  }, [setSelectedTile, setIsErasing]);
 
   const handleToggleEraser = () => {
     setIsErasing(!isErasing);
@@ -66,15 +75,8 @@ export default function LevelEditor() {
     <div className="flex h-full w-full bg-gray-900 text-white overflow-hidden">
       {/* Left Panel */}
       <TilePalette
-        tiles={availableTiles}
         selectedTile={selectedTile}
-        activeCategory={activeCategory}
-        levelData={levelData}
-        zoom={zoom}
         onTileSelect={handleTileSelect}
-        onCategoryChange={setActiveCategory}
-        onLevelDataChange={setLevelData}
-        onZoomChange={setZoom}
       />
 
       {/* Center Panel */}
@@ -100,7 +102,7 @@ export default function LevelEditor() {
 
         <Canvas
           levelData={levelData}
-          tiles={availableTiles}
+          tiles={dynamicTiles}
           showGrid={showGrid}
           zoom={zoom}
           isErasing={isErasing}

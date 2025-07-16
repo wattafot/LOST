@@ -10,9 +10,9 @@ interface LevelSettingsProps {
 
 const LevelSettings = memo<LevelSettingsProps>(({
   levelData,
-  zoom,
+  zoom: _zoom,
   onLevelDataChange,
-  onZoomChange
+  onZoomChange: _onZoomChange
 }) => {
   const handleSizeChange = (width: number, height: number) => {
     onLevelDataChange(prev => ({

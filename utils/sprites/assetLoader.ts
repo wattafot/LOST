@@ -32,9 +32,16 @@ export function preloadSprites(scene: PhaserSceneContext): void {
   scene.load.image('chest', '/sprites/objects/chest_01.png');
   scene.load.image('rock_in_water', '/sprites/objects/rock_in_water_01.png');
   
+  // Load additional sprites for level editor compatibility
+  scene.load.image('fence', '/sprites/tilesets/fences.png');
+  scene.load.image('rock', '/sprites/objects/rock_in_water_01.png');
+  
   // Load NPC sprite (can use skeleton or another character)
   scene.load.spritesheet('npc', '/sprites/characters/skeleton.png', {
     frameWidth: 48,
     frameHeight: 48
   });
+  
+  // Note: BUSH, PLANE, and SUITCASE sprites are generated programmatically
+  // in their respective sprite creation functions, so we don't preload them here
 }

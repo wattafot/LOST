@@ -1,26 +1,26 @@
 "use client";
 
-import { useState } from "react";
-import { Upload, Play, Trash2 } from "lucide-react";
+import { Upload, Play } from "lucide-react";
 
-interface Level {
-  name: string;
-  description: string;
-  width: number;
-  height: number;
-  tileCount: number;
-  created: Date;
-  modified: Date;
+interface LevelData {
+  mapWidth: number;
+  mapHeight: number;
+  tileSize: number;
+  tiles: { [key: string]: string };
+  metadata: {
+    name: string;
+    description: string;
+    created: Date;
+    modified: Date;
+  };
 }
 
 interface LevelSelectorProps {
-  onLevelSelect: (levelData: any) => void;
+  onLevelSelect: (levelData: LevelData) => void;
   onClose: () => void;
 }
 
 export default function LevelSelector({ onLevelSelect, onClose }: LevelSelectorProps) {
-  const [levels, setLevels] = useState<Level[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
 
   // Load custom level from file
   const loadLevelFromFile = () => {

@@ -76,10 +76,8 @@ const Canvas = memo<CanvasProps>(({
     // Always ensure the woods tileset is loaded
     const woodsTilesetPath = '/tilesets/free_pixel_16_woods.png';
     if (!loadedImages.has(woodsTilesetPath)) {
-      console.log('🔄 Loading woods tileset:', woodsTilesetPath);
       const img = new Image();
       img.onload = () => {
-        console.log('✅ Woods tileset loaded successfully:', img.width, 'x', img.height);
         loadedImages.set(woodsTilesetPath, img);
         // Force re-render after image loads
         if (canvasRef.current) {
@@ -88,7 +86,7 @@ const Canvas = memo<CanvasProps>(({
         }
       };
       img.onerror = () => {
-        console.error('❌ Failed to load woods tileset:', woodsTilesetPath);
+        console.error('Failed to load woods tileset:', woodsTilesetPath);
       };
       img.src = woodsTilesetPath;
     }
@@ -97,14 +95,12 @@ const Canvas = memo<CanvasProps>(({
     const uniqueSprites = [...new Set(tiles.map(tile => tile.sprite))];
     uniqueSprites.forEach(spritePath => {
       if (!loadedImages.has(spritePath)) {
-        console.log('🔄 Loading sprite:', spritePath);
         const img = new Image();
         img.onload = () => {
-          console.log('✅ Sprite loaded:', spritePath);
           loadedImages.set(spritePath, img);
         };
         img.onerror = () => {
-          console.error('❌ Failed to load sprite:', spritePath);
+          console.error('Failed to load sprite:', spritePath);
         };
         img.src = spritePath;
       }
@@ -170,7 +166,30 @@ const Canvas = memo<CanvasProps>(({
     const loadedImages = loadedImagesRef.current;
     Object.entries(levelData.tiles).forEach(([key, tileId]) => {
       const { x, y } = keyToPosition(key);
-      const tile = tiles.find(t => t.id === tileId);
+      let tile = tiles.find(t => t.id === tileId);
+      
+      // If tile not found, try to generate it on-demand from woods tileset
+      if (!tile) {
+        const frameIndexMatch = tileId.match(/tile_(\d+)/);
+        if (frameIndexMatch) {
+          const frameIndex = parseInt(frameIndexMatch[1]);
+          const woodsTilesetPath = '/tilesets/free_pixel_16_woods.png';
+          
+          // Create temporary tile definition
+          tile = {
+            id: tileId,
+            name: `Tile ${Math.floor(frameIndex / 64)}-${frameIndex % 64}`,
+            sprite: woodsTilesetPath,
+            category: 'tiles',
+            color: '#808080',
+            frameWidth: 16,
+            frameHeight: 16,
+            frameIndex,
+            tilesetPath: woodsTilesetPath
+          };
+          
+        }
+      }
       
       // Try to get image by tile ID first, then by sprite path
       let img = loadedImages.get(tileId);
@@ -178,13 +197,6 @@ const Canvas = memo<CanvasProps>(({
         img = loadedImages.get(tile.sprite);
       }
       
-      console.log(`🎨 CANVAS RENDER DEBUG - Tile ${tileId}:`, {
-        tileFound: !!tile,
-        imgFound: !!img,
-        sprite: tile?.sprite,
-        frameIndex: tile?.frameIndex,
-        loadedImagesKeys: Array.from(loadedImages.keys())
-      });
       
       if (tile && img) {
         if (tile.frameWidth && tile.frameHeight) {
@@ -195,17 +207,6 @@ const Canvas = memo<CanvasProps>(({
           const frameX = (frameIndex % framesPerRow) * tile.frameWidth;
           const frameY = Math.floor(frameIndex / framesPerRow) * tile.frameHeight;
           
-          // Debug logging (remove in production)
-          console.log(`🎨 CANVAS DEBUG - Drawing tile ${tile.name}:`, {
-            frameIndex,
-            frameX,
-            frameY,
-            frameWidth: tile.frameWidth,
-            frameHeight: tile.frameHeight,
-            imgWidth: img.width,
-            imgHeight: img.height,
-            position: { x, y }
-          });
           
           // For tilesets, we need to maintain aspect ratio and scale properly
           const renderWidth = GRID_SIZE * zoom;

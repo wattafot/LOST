@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { Save, Download, Upload, Trash2, Eye, EyeOff, Undo, Redo, Eraser, Mountain, Waves, Package, Sparkles, Users } from "lucide-react";
+import { Save, Download, Upload, Trash2, Eye, EyeOff, Undo, Redo, Eraser, Mountain, Waves, Package, Sparkles, Users, Loader2 } from "lucide-react";
 
 interface Tile {
   id: string;
@@ -75,78 +75,115 @@ const DEFAULT_LEVEL_HEIGHT = 19;
 
 // Sprite Image Component
 const SpriteImage = ({ tile, size = 32 }: { tile: Tile; size?: number }) => {
-  const [imageLoaded, setImageLoaded] = useState(false);
-  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [hasError, setHasError] = useState(false);
   
+  // Reset states when tile changes
   useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
+    setIsLoading(true);
+    setHasError(false);
+  }, [tile.id]);
+  
+  // For sprite sheets, we need to handle them differently
+  if (tile.frameWidth && tile.frameHeight) {
+    const canvasRef = useRef<HTMLCanvasElement>(null);
     
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
-    
-    canvas.width = size;
-    canvas.height = size;
-    
-    const img = new Image();
-    img.onload = () => {
-      ctx.clearRect(0, 0, size, size);
+    useEffect(() => {
+      const canvas = canvasRef.current;
+      if (!canvas) return;
       
-      if (tile.frameWidth && tile.frameHeight) {
-        // Handle sprite sheet
+      const ctx = canvas.getContext('2d');
+      if (!ctx) return;
+      
+      canvas.width = size;
+      canvas.height = size;
+      
+      const img = new Image();
+      img.onload = () => {
+        ctx.clearRect(0, 0, size, size);
+        
         const frameIndex = tile.frameIndex || 0;
-        const framesPerRow = Math.floor(img.width / tile.frameWidth);
-        const frameX = (frameIndex % framesPerRow) * tile.frameWidth;
-        const frameY = Math.floor(frameIndex / framesPerRow) * tile.frameHeight;
+        const framesPerRow = Math.floor(img.width / tile.frameWidth!);
+        const frameX = (frameIndex % framesPerRow) * tile.frameWidth!;
+        const frameY = Math.floor(frameIndex / framesPerRow) * tile.frameHeight!;
         
         ctx.drawImage(
           img,
-          frameX, frameY, tile.frameWidth, tile.frameHeight,
+          frameX, frameY, tile.frameWidth!, tile.frameHeight!,
           0, 0, size, size
         );
-      } else {
-        // Handle regular image
-        ctx.drawImage(img, 0, 0, size, size);
-      }
+        
+        setIsLoading(false);
+      };
       
-      setImageLoaded(true);
-    };
+      img.onerror = () => {
+        setHasError(true);
+        setIsLoading(false);
+      };
+      
+      img.src = tile.sprite;
+    }, [tile, size]);
     
-    img.onerror = () => {
-      // Fallback to gray rectangle with text label (no colors)
-      ctx.fillStyle = '#4a5568';
-      ctx.fillRect(0, 0, size, size);
-      
-      // Add border
-      ctx.strokeStyle = '#718096';
-      ctx.lineWidth = 1;
-      ctx.strokeRect(0, 0, size, size);
-      
-      // Add text label
-      ctx.fillStyle = '#e2e8f0';
-      ctx.font = `${Math.max(8, size/6)}px Arial`;
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
-      ctx.fillText(tile.name.slice(0, 3).toUpperCase(), size/2, size/2);
-      
-      setImageLoaded(true);
-    };
+    if (isLoading) {
+      return (
+        <div 
+          className="flex items-center justify-center bg-gray-700 border border-gray-600 rounded"
+          style={{ width: size, height: size }}
+        >
+          <Loader2 size={size / 3} className="animate-spin text-gray-400" />
+        </div>
+      );
+    }
     
-    img.src = tile.sprite;
-  }, [tile, size]);
-  
-  if (!imageLoaded) {
-    return (
-      <div 
-        className="flex items-center justify-center bg-gray-700 border border-gray-600 rounded"
-        style={{ width: size, height: size }}
-      >
-        <div className="text-gray-400 text-xs">...</div>
-      </div>
-    );
+    if (hasError) {
+      return (
+        <div 
+          className="flex items-center justify-center bg-gray-700 border border-gray-600 rounded text-gray-300 text-xs"
+          style={{ width: size, height: size }}
+        >
+          {tile.name.slice(0, 3).toUpperCase()}
+        </div>
+      );
+    }
+    
+    return <canvas ref={canvasRef} width={size} height={size} className="rounded" />;
   }
   
-  return <canvas ref={canvasRef} width={size} height={size} />;
+  // For regular images, use simple img tag
+  return (
+    <div className="relative" style={{ width: size, height: size }}>
+      {isLoading && (
+        <div 
+          className="absolute inset-0 flex items-center justify-center bg-gray-700 border border-gray-600 rounded"
+        >
+          <Loader2 size={size / 3} className="animate-spin text-gray-400" />
+        </div>
+      )}
+      <img 
+        src={tile.sprite}
+        alt={tile.name}
+        className="rounded border border-gray-600"
+        style={{ 
+          width: size, 
+          height: size, 
+          objectFit: 'cover',
+          display: isLoading ? 'none' : 'block'
+        }}
+        onLoad={() => setIsLoading(false)}
+        onError={() => {
+          setHasError(true);
+          setIsLoading(false);
+        }}
+      />
+      {hasError && !isLoading && (
+        <div 
+          className="absolute inset-0 flex items-center justify-center bg-gray-700 border border-gray-600 rounded text-gray-300 text-xs"
+        >
+          {tile.name.slice(0, 3).toUpperCase()}
+        </div>
+      )}
+    </div>
+  );
 };
 
 export default function LevelEditor() {
@@ -162,6 +199,12 @@ export default function LevelEditor() {
       modified: new Date(),
     }
   });
+  
+  const [mounted, setMounted] = useState(false);
+  
+  useEffect(() => {
+    setMounted(true);
+  }, []);
   
   const [selectedTile, setSelectedTile] = useState<Tile | null>(AVAILABLE_TILES[0]);
   const [isDrawing, setIsDrawing] = useState(false);
@@ -257,16 +300,24 @@ export default function LevelEditor() {
   // Undo function
   const undo = () => {
     if (historyIndex > 0) {
-      setHistoryIndex(prev => prev - 1);
-      setLevelData(history[historyIndex - 1]);
+      const newIndex = historyIndex - 1;
+      const historyEntry = history[newIndex];
+      if (historyEntry) {
+        setHistoryIndex(newIndex);
+        setLevelData(historyEntry);
+      }
     }
   };
   
   // Redo function
   const redo = () => {
     if (historyIndex < history.length - 1) {
-      setHistoryIndex(prev => prev + 1);
-      setLevelData(history[historyIndex + 1]);
+      const newIndex = historyIndex + 1;
+      const historyEntry = history[newIndex];
+      if (historyEntry) {
+        setHistoryIndex(newIndex);
+        setLevelData(historyEntry);
+      }
     }
   };
   
@@ -728,7 +779,7 @@ export default function LevelEditor() {
             Mode: {isErasing ? 'Erasing' : 'Drawing'} | 
             Selected: {selectedTile?.name || 'None'} | 
             {isErasing ? 'Click to erase tiles' : 'Left click to place, Right click to erase'} | 
-            Modified: {levelData.metadata.modified.toLocaleString()}
+            Modified: {mounted ? levelData.metadata.modified.toLocaleString() : 'Loading...'}
           </div>
         </div>
       </div>

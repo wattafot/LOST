@@ -37,14 +37,14 @@ const TilePalette = memo<TilePaletteProps>(({
 
 
   return (
-    <div className="w-80 min-w-0 bg-gray-800 border-r border-gray-700 flex flex-col h-full">
-      {/* Header */}
-      <div className="flex-shrink-0 p-4">
+    <div className="w-96 min-w-0 bg-gray-800 border-r border-gray-700 flex flex-col h-full md:w-96 w-full">
+      {/* Header - Hidden on mobile when in overlay */}
+      <div className="flex-shrink-0 p-4 md:block hidden">
         <h2 className="text-xl font-bold">Tile Palette</h2>
       </div>
       
       {/* Tileset Viewer */}
-      <div className="flex-1 overflow-y-auto p-4 min-h-0">
+      <div className="flex-1 overflow-y-auto p-4 min-h-0 flex items-center justify-center">
         {isLoading ? (
           <div className="text-center text-gray-400">Loading tileset...</div>
         ) : tilesetDefinition ? (

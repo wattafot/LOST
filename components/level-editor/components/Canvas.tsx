@@ -197,7 +197,7 @@ const Canvas = memo<CanvasProps>(({
   }, [levelData, showGrid, zoom, tiles, keyToPosition]);
 
   return (
-    <div className="flex-1 overflow-auto bg-gray-900 p-4">
+    <div className="flex-1 overflow-auto bg-gray-900 p-4 min-h-0">
       <canvas
         ref={canvasRef}
         onMouseDown={(e) => {

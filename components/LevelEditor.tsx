@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { Save, Download, Upload, Trash2, Eye, EyeOff } from "lucide-react";
+import { Save, Download, Upload, Trash2, Eye, EyeOff, Undo, Redo, Eraser, Mountain, Waves, Package, Sparkles, Users } from "lucide-react";
 
 interface Tile {
   id: string;
@@ -113,9 +113,22 @@ const SpriteImage = ({ tile, size = 32 }: { tile: Tile; size?: number }) => {
     };
     
     img.onerror = () => {
-      // Fallback to colored rectangle
-      ctx.fillStyle = tile.color;
+      // Fallback to gray rectangle with text label (no colors)
+      ctx.fillStyle = '#4a5568';
       ctx.fillRect(0, 0, size, size);
+      
+      // Add border
+      ctx.strokeStyle = '#718096';
+      ctx.lineWidth = 1;
+      ctx.strokeRect(0, 0, size, size);
+      
+      // Add text label
+      ctx.fillStyle = '#e2e8f0';
+      ctx.font = `${Math.max(8, size/6)}px Arial`;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(tile.name.slice(0, 3).toUpperCase(), size/2, size/2);
+      
       setImageLoaded(true);
     };
     
@@ -125,10 +138,10 @@ const SpriteImage = ({ tile, size = 32 }: { tile: Tile; size?: number }) => {
   if (!imageLoaded) {
     return (
       <div 
-        className="flex items-center justify-center"
-        style={{ width: size, height: size, backgroundColor: tile.color }}
+        className="flex items-center justify-center bg-gray-700 border border-gray-600 rounded"
+        style={{ width: size, height: size }}
       >
-        <div className="text-white text-xs">...</div>
+        <div className="text-gray-400 text-xs">...</div>
       </div>
     );
   }
@@ -156,6 +169,17 @@ export default function LevelEditor() {
   const [activeCategory, setActiveCategory] = useState<string>('terrain');
   const [zoom, setZoom] = useState(1);
   const [loadedImages, setLoadedImages] = useState<{ [key: string]: HTMLImageElement }>({});
+  const [history, setHistory] = useState<LevelData[]>([]);
+  const [historyIndex, setHistoryIndex] = useState(-1);
+  
+  // Initialize history on component mount
+  useEffect(() => {
+    if (history.length === 0) {
+      const initialHistory = [JSON.parse(JSON.stringify(levelData))];
+      setHistory(initialHistory);
+      setHistoryIndex(0);
+    }
+  }, [levelData, history.length]);
   
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -168,6 +192,18 @@ export default function LevelEditor() {
   // Get unique categories
   const categories = [...new Set(AVAILABLE_TILES.map(tile => tile.category))];
   
+  // Get category icon
+  const getCategoryIcon = (category: string) => {
+    switch (category) {
+      case 'terrain': return <Mountain size={16} />;
+      case 'water': return <Waves size={16} />;
+      case 'objects': return <Package size={16} />;
+      case 'decorations': return <Sparkles size={16} />;
+      case 'characters': return <Users size={16} />;
+      default: return <Package size={16} />;
+    }
+  };
+  
   // Convert grid position to tile key
   const positionToKey = (x: number, y: number) => `${x},${y}`;
   
@@ -177,23 +213,65 @@ export default function LevelEditor() {
     return { x, y };
   };
   
+  // Add to history for undo functionality
+  const addToHistory = (newLevelData: LevelData) => {
+    const newHistory = history.slice(0, historyIndex + 1);
+    newHistory.push(JSON.parse(JSON.stringify(newLevelData)));
+    
+    // Keep only last 50 actions
+    if (newHistory.length > 50) {
+      newHistory.shift();
+    } else {
+      setHistoryIndex(prev => prev + 1);
+    }
+    
+    setHistory(newHistory);
+  };
+  
   // Place tile at position
   const placeTile = (x: number, y: number, tileId: string | null) => {
     const key = positionToKey(x, y);
-    setLevelData(prev => ({
-      ...prev,
-      tiles: tileId ? { ...prev.tiles, [key]: tileId } : 
-                     (() => {
-                       const newTiles = { ...prev.tiles };
-                       delete newTiles[key];
-                       return newTiles;
-                     })(),
-      metadata: {
-        ...prev.metadata,
-        modified: new Date()
-      }
-    }));
+    
+    setLevelData(prev => {
+      const newLevelData = {
+        ...prev,
+        tiles: tileId ? { ...prev.tiles, [key]: tileId } : 
+                       (() => {
+                         const newTiles = { ...prev.tiles };
+                         delete newTiles[key];
+                         return newTiles;
+                       })(),
+        metadata: {
+          ...prev.metadata,
+          modified: new Date()
+        }
+      };
+      
+      // Add to history
+      addToHistory(prev);
+      
+      return newLevelData;
+    });
   };
+  
+  // Undo function
+  const undo = () => {
+    if (historyIndex > 0) {
+      setHistoryIndex(prev => prev - 1);
+      setLevelData(history[historyIndex - 1]);
+    }
+  };
+  
+  // Redo function
+  const redo = () => {
+    if (historyIndex < history.length - 1) {
+      setHistoryIndex(prev => prev + 1);
+      setLevelData(history[historyIndex + 1]);
+    }
+  };
+  
+  // Single tile delete mode
+  const [isErasing, setIsErasing] = useState(false);
   
   // Handle canvas mouse events
   const handleCanvasMouseDown = (e: React.MouseEvent<HTMLCanvasElement>) => {
@@ -219,7 +297,7 @@ export default function LevelEditor() {
     const y = Math.floor((e.clientY - rect.top) / (GRID_SIZE * zoom));
     
     if (x >= 0 && x < levelData.width && y >= 0 && y < levelData.height) {
-      if (e.button === 2) { // Right click - erase
+      if (e.button === 2 || isErasing) { // Right click or eraser mode - erase
         placeTile(x, y, null);
       } else if (selectedTile) { // Left click - place
         placeTile(x, y, selectedTile.id);
@@ -334,8 +412,8 @@ export default function LevelEditor() {
           );
         }
       } else if (tile) {
-        // Fallback to colored rectangle
-        ctx.fillStyle = tile.color;
+        // Fallback to gray rectangle with text label
+        ctx.fillStyle = '#4a5568';
         ctx.fillRect(
           x * GRID_SIZE * zoom,
           y * GRID_SIZE * zoom,
@@ -343,14 +421,25 @@ export default function LevelEditor() {
           GRID_SIZE * zoom
         );
         
+        // Add border
+        ctx.strokeStyle = '#718096';
+        ctx.lineWidth = 1;
+        ctx.strokeRect(
+          x * GRID_SIZE * zoom,
+          y * GRID_SIZE * zoom,
+          GRID_SIZE * zoom,
+          GRID_SIZE * zoom
+        );
+        
         // Add tile label
-        ctx.fillStyle = 'white';
-        ctx.font = `${8 * zoom}px Arial`;
+        ctx.fillStyle = '#e2e8f0';
+        ctx.font = `${Math.max(8, 8 * zoom)}px Arial`;
         ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
         ctx.fillText(
-          tile.name.charAt(0),
+          tile.name.slice(0, 3).toUpperCase(),
           (x + 0.5) * GRID_SIZE * zoom,
-          (y + 0.6) * GRID_SIZE * zoom
+          (y + 0.5) * GRID_SIZE * zoom
         );
       }
     });
@@ -440,26 +529,33 @@ export default function LevelEditor() {
           />
         </div>
         
-        {/* Category Tabs */}
-        <div className="flex border-b border-gray-700">
-          {categories.map(category => (
-            <button
-              key={category}
-              onClick={() => setActiveCategory(category)}
-              className={`flex-1 p-2 text-sm font-medium capitalize ${
-                activeCategory === category
-                  ? 'bg-blue-600 text-white'
-                  : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
-              }`}
-            >
-              {category}
-            </button>
-          ))}
+        {/* Category Selection - Grid Layout */}
+        <div className="border-b border-gray-700 p-3">
+          <div className="grid grid-cols-3 gap-2">
+            {categories.map(category => (
+              <button
+                key={category}
+                onClick={() => setActiveCategory(category)}
+                className={`p-2 rounded border-2 transition-all text-sm font-medium capitalize ${
+                  activeCategory === category
+                    ? 'border-blue-500 bg-blue-600 bg-opacity-20 text-white'
+                    : 'border-gray-600 hover:border-gray-500 text-gray-300 hover:text-white'
+                }`}
+              >
+                <div className="flex flex-col items-center gap-1">
+                  <div className="text-gray-300">
+                    {getCategoryIcon(category)}
+                  </div>
+                  <div className="text-xs">{category}</div>
+                </div>
+              </button>
+            ))}
+          </div>
         </div>
         
         {/* Tile Palette */}
         <div className="flex-1 overflow-y-auto p-4">
-          <div className="grid grid-cols-3 gap-2">
+          <div className="grid grid-cols-2 gap-3">
             {getTilesByCategory(activeCategory).map(tile => (
               <button
                 key={tile.id}
@@ -470,10 +566,10 @@ export default function LevelEditor() {
                     : 'border-gray-600 hover:border-gray-500'
                 }`}
               >
-                <div className="w-full h-8 rounded mb-1 flex items-center justify-center">
-                  <SpriteImage tile={tile} size={32} />
+                <div className="w-full h-16 rounded mb-2 flex items-center justify-center bg-gray-800">
+                  <SpriteImage tile={tile} size={48} />
                 </div>
-                <div className="text-xs text-center text-white">{tile.name}</div>
+                <div className="text-xs text-center text-white font-medium">{tile.name}</div>
               </button>
             ))}
           </div>
@@ -542,37 +638,68 @@ export default function LevelEditor() {
       {/* Center Panel - Canvas */}
       <div className="flex-1 flex flex-col">
         {/* Toolbar */}
-        <div className="bg-gray-800 border-b border-gray-700 p-4">
-          <div className="flex items-center gap-4">
+        <div className="bg-gray-800 border-b border-gray-700 p-2">
+          <div className="flex items-center gap-2">
             <button
               onClick={saveLevel}
-              className="flex items-center gap-2 px-4 py-2 bg-green-600 rounded hover:bg-green-700"
+              className="flex items-center gap-1 px-2 py-1 text-sm bg-green-600 rounded hover:bg-green-700"
             >
-              <Save size={16} />
-              Save Level
+              <Save size={14} />
+              Save
             </button>
             
             <button
               onClick={() => fileInputRef.current?.click()}
-              className="flex items-center gap-2 px-4 py-2 bg-blue-600 rounded hover:bg-blue-700"
+              className="flex items-center gap-1 px-2 py-1 text-sm bg-blue-600 rounded hover:bg-blue-700"
             >
-              <Upload size={16} />
-              Load Level
+              <Upload size={14} />
+              Load
             </button>
             
             <button
               onClick={exportToGameFormat}
-              className="flex items-center gap-2 px-4 py-2 bg-purple-600 rounded hover:bg-purple-700"
+              className="flex items-center gap-1 px-2 py-1 text-sm bg-purple-600 rounded hover:bg-purple-700"
             >
-              <Download size={16} />
-              Export for Game
+              <Download size={14} />
+              Export
+            </button>
+            
+            <div className="h-4 w-px bg-gray-600"></div>
+            
+            <button
+              onClick={undo}
+              disabled={historyIndex <= 0}
+              className="flex items-center gap-1 px-2 py-1 text-sm bg-gray-600 rounded hover:bg-gray-500 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <Undo size={14} />
             </button>
             
             <button
-              onClick={clearLevel}
-              className="flex items-center gap-2 px-4 py-2 bg-red-600 rounded hover:bg-red-700"
+              onClick={redo}
+              disabled={historyIndex >= history.length - 1}
+              className="flex items-center gap-1 px-2 py-1 text-sm bg-gray-600 rounded hover:bg-gray-500 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              <Trash2 size={16} />
+              <Redo size={14} />
+            </button>
+            
+            <button
+              onClick={() => setIsErasing(!isErasing)}
+              className={`flex items-center gap-1 px-2 py-1 text-sm rounded ${
+                isErasing 
+                  ? 'bg-red-600 hover:bg-red-700' 
+                  : 'bg-gray-600 hover:bg-gray-500'
+              }`}
+            >
+              <Eraser size={14} />
+            </button>
+            
+            <div className="h-4 w-px bg-gray-600"></div>
+            
+            <button
+              onClick={clearLevel}
+              className="flex items-center gap-1 px-2 py-1 text-sm bg-red-600 rounded hover:bg-red-700"
+            >
+              <Trash2 size={14} />
               Clear
             </button>
             
@@ -598,8 +725,9 @@ export default function LevelEditor() {
         {/* Status Bar */}
         <div className="bg-gray-800 border-t border-gray-700 p-2">
           <div className="text-sm text-gray-400">
+            Mode: {isErasing ? 'Erasing' : 'Drawing'} | 
             Selected: {selectedTile?.name || 'None'} | 
-            Left click to place, Right click to erase | 
+            {isErasing ? 'Click to erase tiles' : 'Left click to place, Right click to erase'} | 
             Modified: {levelData.metadata.modified.toLocaleString()}
           </div>
         </div>

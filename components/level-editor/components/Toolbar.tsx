@@ -75,8 +75,8 @@ const Toolbar = memo<ToolbarProps>(({
 
   return (
     <>
-      <div className="bg-gray-800 border-b border-gray-700 px-4 h-[61px] flex items-center">
-        <div className="flex flex-wrap items-center gap-3 w-full">
+      <div className="bg-gray-800 border-b border-gray-700 px-4 py-3 h-[61px] flex items-center">
+        <div className="flex flex-wrap items-center gap-3 w-full h-full">
           {/* Level Name */}
           <div className="flex items-center gap-2">
             <label className="text-sm font-medium text-gray-300 whitespace-nowrap">Name:</label>
@@ -131,7 +131,7 @@ const Toolbar = memo<ToolbarProps>(({
           <div className="flex items-center gap-2">
             <button
               onClick={onSave}
-              className="flex items-center gap-1 px-3 py-1 text-sm bg-green-600 rounded hover:bg-green-700 transition-colors"
+              className="flex items-center gap-1 px-3 py-2 text-sm bg-green-600 rounded hover:bg-green-700 transition-colors"
             >
               <Save size={14} />
               Save
@@ -139,7 +139,7 @@ const Toolbar = memo<ToolbarProps>(({
             
             <button
               onClick={handleLoadClick}
-              className="flex items-center gap-1 px-3 py-1 text-sm bg-blue-600 rounded hover:bg-blue-700 transition-colors"
+              className="flex items-center gap-1 px-3 py-2 text-sm bg-blue-600 rounded hover:bg-blue-700 transition-colors"
             >
               <Upload size={14} />
               Load
@@ -147,14 +147,14 @@ const Toolbar = memo<ToolbarProps>(({
             
             <button
               onClick={onExport}
-              className="flex items-center gap-1 px-3 py-1 text-sm bg-purple-600 rounded hover:bg-purple-700 transition-colors"
+              className="flex items-center gap-1 px-3 py-2 text-sm bg-purple-600 rounded hover:bg-purple-700 transition-colors"
             >
               <Download size={14} />
               Export
             </button>
           </div>
           
-          <div className="h-4 w-px bg-gray-600"></div>
+          <div className="h-6 w-px bg-gray-600"></div>
           
           <div className="flex items-center gap-2">
             <button

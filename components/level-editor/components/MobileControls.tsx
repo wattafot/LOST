@@ -30,102 +30,99 @@ const MobileControls = memo<MobileControlsProps>(({
   onRedo
 }) => {
   return (
-    <div className="flex-shrink-0 bg-gray-800 border-b border-gray-700 p-3">
-      <div className="flex items-center justify-between">
-        {/* Left Side - Primary Actions */}
-        <div className="flex items-center gap-3">
-          {/* Tile Palette Toggle */}
-          <button
-            onClick={onToggleTilePalette}
-            className={`flex items-center justify-center w-10 h-10 rounded-lg border-2 transition-all ${
-              isTilePaletteOpen
-                ? 'border-blue-500 bg-blue-600 bg-opacity-20 text-white'
-                : 'border-gray-600 hover:border-gray-500 text-gray-300 hover:text-white'
-            }`}
-            aria-label="Toggle tile palette"
-          >
-            <Grid3X3 size={20} />
-          </button>
+    <div className="flex-shrink-0 bg-gray-800 border-b border-gray-700 px-3 py-2">
+      <div className="flex items-center gap-3">
+        {/* All buttons aligned to left */}
+        
+        {/* Tile Palette Toggle */}
+        <button
+          onClick={onToggleTilePalette}
+          className={`flex items-center justify-center w-10 h-10 rounded-lg transition-colors ${
+            isTilePaletteOpen
+              ? 'bg-blue-600 text-white'
+              : 'bg-gray-700 hover:bg-gray-600 text-gray-300 hover:text-white'
+          }`}
+          aria-label="Toggle tile palette"
+        >
+          <Grid3X3 size={18} />
+        </button>
 
-          {/* Selected Tile Preview */}
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-gray-700 rounded border border-gray-600 flex items-center justify-center">
-              {selectedTile ? (
-                <div 
-                  className="w-6 h-6 rounded"
-                  style={{ backgroundColor: selectedTile.color }}
-                  title={selectedTile.name}
-                />
-              ) : (
-                <span className="text-gray-500 text-xs">?</span>
-              )}
-            </div>
-            {selectedTile && (
-              <span className="text-xs text-gray-400 max-w-20 truncate">
-                {selectedTile.name}
-              </span>
+        {/* Selected Tile Preview */}
+        <div className="flex items-center gap-2">
+          <div className="w-8 h-8 bg-gray-700 rounded border border-gray-600 flex items-center justify-center">
+            {selectedTile ? (
+              <div 
+                className="w-6 h-6 rounded"
+                style={{ backgroundColor: selectedTile.color }}
+                title={selectedTile.name}
+              />
+            ) : (
+              <span className="text-gray-500 text-xs">?</span>
             )}
           </div>
+          {selectedTile && (
+            <span className="text-xs text-gray-400 max-w-20 truncate">
+              {selectedTile.name}
+            </span>
+          )}
         </div>
 
-        {/* Center - Quick Actions */}
-        <div className="flex items-center gap-2">
-          {/* Eraser */}
-          <button
-            onClick={onToggleEraser}
-            className={`flex items-center justify-center w-9 h-9 rounded-lg border transition-all ${
-              isErasing
-                ? 'border-red-500 bg-red-600 bg-opacity-20 text-red-300'
-                : 'border-gray-600 hover:border-gray-500 text-gray-300 hover:text-white'
-            }`}
-            aria-label="Toggle eraser"
-          >
-            <Eraser size={16} />
-          </button>
+        {/* Eraser */}
+        <button
+          onClick={onToggleEraser}
+          className={`flex items-center justify-center w-10 h-10 rounded-lg transition-colors ${
+            isErasing
+              ? 'bg-red-600 text-white'
+              : 'bg-gray-700 hover:bg-gray-600 text-gray-300 hover:text-white'
+          }`}
+          aria-label="Toggle eraser"
+        >
+          <Eraser size={18} />
+        </button>
 
-          {/* Undo */}
-          <button
-            onClick={onUndo}
-            disabled={!canUndo}
-            className={`flex items-center justify-center w-9 h-9 rounded-lg border transition-all ${
-              canUndo
-                ? 'border-gray-600 hover:border-gray-500 text-gray-300 hover:text-white'
-                : 'border-gray-700 text-gray-600 cursor-not-allowed'
-            }`}
-            aria-label="Undo"
-          >
-            <Undo size={16} />
-          </button>
+        {/* Undo */}
+        <button
+          onClick={onUndo}
+          disabled={!canUndo}
+          className={`flex items-center justify-center w-10 h-10 rounded-lg transition-colors ${
+            canUndo
+              ? 'bg-gray-700 hover:bg-gray-600 text-gray-300 hover:text-white'
+              : 'bg-gray-800 text-gray-600 cursor-not-allowed'
+          }`}
+          aria-label="Undo"
+        >
+          <Undo size={18} />
+        </button>
 
-          {/* Redo */}
-          <button
-            onClick={onRedo}
-            disabled={!canRedo}
-            className={`flex items-center justify-center w-9 h-9 rounded-lg border transition-all ${
-              canRedo
-                ? 'border-gray-600 hover:border-gray-500 text-gray-300 hover:text-white'
-                : 'border-gray-700 text-gray-600 cursor-not-allowed'
-            }`}
-            aria-label="Redo"
-          >
-            <Redo size={16} />
-          </button>
-        </div>
+        {/* Redo */}
+        <button
+          onClick={onRedo}
+          disabled={!canRedo}
+          className={`flex items-center justify-center w-10 h-10 rounded-lg transition-colors ${
+            canRedo
+              ? 'bg-gray-700 hover:bg-gray-600 text-gray-300 hover:text-white'
+              : 'bg-gray-800 text-gray-600 cursor-not-allowed'
+          }`}
+          aria-label="Redo"
+        >
+          <Redo size={18} />
+        </button>
 
-        {/* Right Side - Menu */}
-        <div className="flex items-center">
-          <button
-            onClick={onToggleMobileMenu}
-            className={`flex items-center justify-center w-10 h-10 rounded-lg border-2 transition-all ${
-              isMobileMenuOpen
-                ? 'border-blue-500 bg-blue-600 bg-opacity-20 text-white'
-                : 'border-gray-600 hover:border-gray-500 text-gray-300 hover:text-white'
-            }`}
-            aria-label="Toggle menu"
-          >
-            <Menu size={20} />
-          </button>
-        </div>
+        {/* Spacer */}
+        <div className="flex-1"></div>
+
+        {/* Menu */}
+        <button
+          onClick={onToggleMobileMenu}
+          className={`flex items-center justify-center w-10 h-10 rounded-lg transition-colors ${
+            isMobileMenuOpen
+              ? 'bg-blue-600 text-white'
+              : 'bg-gray-700 hover:bg-gray-600 text-gray-300 hover:text-white'
+          }`}
+          aria-label="Toggle menu"
+        >
+          <Menu size={18} />
+        </button>
       </div>
     </div>
   );

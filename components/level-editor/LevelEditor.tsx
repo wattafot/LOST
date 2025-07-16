@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useCallback } from 'react';
+import { Tile } from './types';
 import { useLevelEditor } from './hooks/useLevelEditor';
 import TilePalette from './components/TilePalette';
 import Toolbar from './components/Toolbar';
@@ -12,13 +13,13 @@ export default function LevelEditor() {
     // State
     levelData,
     selectedTile,
-    isDrawing: _isDrawing,
+    isDrawing,
     showGrid,
     zoom,
     history,
     historyIndex,
     isErasing,
-    mounted: _mounted,
+    mounted,
     // Actions
     setLevelData,
     setSelectedTile,
@@ -36,7 +37,7 @@ export default function LevelEditor() {
   } = useLevelEditor();
 
   // State for dynamic tiles (includes tiles created from tileset viewer)
-  const [dynamicTiles, setDynamicTiles] = useState([]);
+  const [dynamicTiles, setDynamicTiles] = useState<Tile[]>([]);
   
   // Mobile UI state
   const [isTilePaletteOpen, setIsTilePaletteOpen] = useState(false);
@@ -51,14 +52,11 @@ export default function LevelEditor() {
     placeTile(x, y, tileId);
   };
 
-  const handleTileSelect = useCallback((tile) => {
-    console.log('🎯 LEVEL EDITOR - Tile selected:', tile);
-    
+  const handleTileSelect = useCallback((tile: Tile) => {
     // Add tile to dynamic tiles if not exists
     setDynamicTiles(prev => {
       const exists = prev.find(t => t.id === tile.id);
       if (!exists) {
-        console.log('➕ Adding tile to dynamic tiles:', tile.id);
         return [...prev, tile];
       }
       return prev;
@@ -79,7 +77,7 @@ export default function LevelEditor() {
   return (
     <div className="flex h-full w-full bg-gray-900 text-white overflow-hidden relative">
       {/* Desktop Layout - Hidden on Mobile */}
-      <div className="hidden md:flex h-full w-full">
+      <div className="hidden lg:flex h-full w-full">
         {/* Left Panel - Desktop */}
         <TilePalette
           selectedTile={selectedTile}
@@ -105,6 +103,7 @@ export default function LevelEditor() {
             onClear={clearLevel}
             onLevelDataChange={setLevelData}
             onZoomChange={setZoom}
+            isMobile={false}
           />
 
           <Canvas
@@ -121,7 +120,7 @@ export default function LevelEditor() {
       </div>
 
       {/* Mobile Layout - Shown only on Mobile */}
-      <div className="flex md:hidden h-full w-full flex-col">
+      <div className="flex lg:hidden h-full w-full flex-col">
         {/* Mobile Controls */}
         <MobileControls
           selectedTile={selectedTile}
@@ -153,7 +152,7 @@ export default function LevelEditor() {
 
         {/* Mobile Tile Palette Overlay - Fullscreen */}
         {isTilePaletteOpen && (
-          <div className="absolute inset-0 z-50 bg-gray-900 md:hidden flex flex-col">
+          <div className="absolute inset-0 z-50 bg-gray-900 lg:hidden flex flex-col">
             {/* Header */}
             <div className="flex-shrink-0 p-4 border-b border-gray-700 flex justify-between items-center bg-gray-800">
               <h3 className="text-lg font-semibold text-white">Select Tiles</h3>
@@ -180,7 +179,7 @@ export default function LevelEditor() {
 
         {/* Mobile Menu Overlay */}
         {isMobileMenuOpen && (
-          <div className="absolute inset-0 z-40 bg-black bg-opacity-50 md:hidden">
+          <div className="absolute inset-0 z-40 bg-black bg-opacity-50 lg:hidden">
             <div className="absolute top-0 left-0 right-0 bg-gray-800">
               <div className="p-4 border-b border-gray-700 flex justify-between items-center">
                 <h3 className="text-lg font-semibold">Level Settings</h3>

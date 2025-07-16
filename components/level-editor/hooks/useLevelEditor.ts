@@ -142,7 +142,16 @@ export const useLevelEditor = (): LevelEditorState & LevelEditorActions => {
       reader.onload = (e) => {
         try {
           const loadedData = JSON.parse(e.target?.result as string);
+          
+          // Update the level data
           setLevelData(loadedData);
+          
+          // Reset history with the loaded level as the initial state
+          const newHistory = [structuredClone(loadedData)];
+          setHistory(newHistory);
+          setHistoryIndex(0);
+          
+          
           resolve();
         } catch (error) {
           console.error('Error loading level file:', error);

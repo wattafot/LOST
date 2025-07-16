@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { LevelData, LevelEditorState, LevelEditorActions, Tile, TileCategory, DEFAULT_LEVEL_WIDTH, DEFAULT_LEVEL_HEIGHT, GRID_SIZE, MAX_HISTORY_SIZE } from '../types';
+import { LevelData, LevelEditorState, LevelEditorActions, Tile, DEFAULT_LEVEL_WIDTH, DEFAULT_LEVEL_HEIGHT, GRID_SIZE, MAX_HISTORY_SIZE } from '../types';
 
 export const useLevelEditor = (): LevelEditorState & LevelEditorActions => {
   const [levelData, setLevelData] = useState<LevelData>({
@@ -18,7 +18,6 @@ export const useLevelEditor = (): LevelEditorState & LevelEditorActions => {
   const [selectedTile, setSelectedTile] = useState<Tile | null>(null);
   const [isDrawing, setIsDrawing] = useState(false);
   const [showGrid, setShowGrid] = useState(true);
-  const [activeCategory, setActiveCategory] = useState<TileCategory>('terrain');
   const [zoom, setZoom] = useState(1);
   const [history, setHistory] = useState<LevelData[]>([]);
   const [historyIndex, setHistoryIndex] = useState(-1);
@@ -42,6 +41,9 @@ export const useLevelEditor = (): LevelEditorState & LevelEditorActions => {
     const [x, y] = key.split(',').map(Number);
     return { x, y };
   }, []);
+  
+  // Silence unused warning - this function is available for future use
+  void keyToPosition;
 
   // History management
   const addToHistory = useCallback((newLevelData: LevelData) => {
@@ -143,6 +145,7 @@ export const useLevelEditor = (): LevelEditorState & LevelEditorActions => {
           setLevelData(loadedData);
           resolve();
         } catch (error) {
+          console.error('Error loading level file:', error);
           reject(new Error('Error loading level file'));
         }
       };
@@ -176,7 +179,6 @@ export const useLevelEditor = (): LevelEditorState & LevelEditorActions => {
     selectedTile,
     isDrawing,
     showGrid,
-    activeCategory,
     zoom,
     history,
     historyIndex,
@@ -187,7 +189,6 @@ export const useLevelEditor = (): LevelEditorState & LevelEditorActions => {
     setSelectedTile,
     setIsDrawing,
     setShowGrid,
-    setActiveCategory,
     setZoom,
     setIsErasing,
     placeTile,

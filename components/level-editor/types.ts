@@ -10,7 +10,7 @@ export interface Tile {
   readonly tilesetPath?: string;
 }
 
-export type TileCategory = 'terrain' | 'objects' | 'water' | 'decorations' | 'characters' | 'tilesets';
+export type TileCategory = 'tiles';
 
 export interface LevelData {
   readonly width: number;
@@ -37,7 +37,6 @@ export interface LevelEditorState {
   readonly selectedTile: Tile | null;
   readonly isDrawing: boolean;
   readonly showGrid: boolean;
-  readonly activeCategory: TileCategory;
   readonly zoom: number;
   readonly history: ReadonlyArray<LevelData>;
   readonly historyIndex: number;
@@ -50,7 +49,6 @@ export interface LevelEditorActions {
   setSelectedTile: (tile: Tile | null) => void;
   setIsDrawing: (isDrawing: boolean) => void;
   setShowGrid: (showGrid: boolean) => void;
-  setActiveCategory: (category: TileCategory) => void;
   setZoom: (zoom: number) => void;
   setIsErasing: (isErasing: boolean) => void;
   placeTile: (x: number, y: number, tileId: string | null) => void;

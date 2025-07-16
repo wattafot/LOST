@@ -72,23 +72,7 @@ const SpriteImage = memo<SpriteImageProps>(({ tile, size = 32 }) => {
     img.src = tile.sprite;
   }, [tile, size]);
 
-  // Tileset tiles - show name only
-  if (tile.category === 'tilesets') {
-    return (
-      <div 
-        className="flex flex-col items-center justify-center bg-purple-900 border border-purple-600 rounded text-purple-100 text-xs"
-        style={{ width: size, height: size }}
-        title={tile.name}
-      >
-        <div className="font-bold text-center px-1">
-          {tile.name.replace(/[^0-9-]/g, '')}
-        </div>
-        <div className="text-xs opacity-75">
-          {tile.name.split('_')[0]}
-        </div>
-      </div>
-    );
-  }
+  // Skip the tileset name-only display - all tiles should show sprites now
 
   // Sprite sheets - use canvas
   if (tile.frameWidth && tile.frameHeight) {

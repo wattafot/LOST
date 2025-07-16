@@ -51,6 +51,7 @@ const Toolbar = memo<ToolbarProps>(({
       try {
         await onLoad(file);
       } catch (error) {
+        console.error('Error loading level file:', error);
         alert('Error loading level file');
       }
     }

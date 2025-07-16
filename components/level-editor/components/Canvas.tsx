@@ -49,35 +49,44 @@ const Canvas = memo<CanvasProps>(({
     }
   }, [levelData.width, levelData.height, zoom, isErasing, selectedTile, onTilePlace]);
 
-  // Preload images for canvas rendering
+  // Preload tileset images for canvas rendering
   useEffect(() => {
     const loadedImages = loadedImagesRef.current;
     
-    tiles.forEach(tile => {
-      if (!loadedImages.has(tile.id)) {
+    // Always ensure the woods tileset is loaded
+    const woodsTilesetPath = '/tilesets/free_pixel_16_woods.png';
+    if (!loadedImages.has(woodsTilesetPath)) {
+      console.log('🔄 Loading woods tileset:', woodsTilesetPath);
+      const img = new Image();
+      img.onload = () => {
+        console.log('✅ Woods tileset loaded successfully:', img.width, 'x', img.height);
+        loadedImages.set(woodsTilesetPath, img);
+        // Force re-render after image loads
+        if (canvasRef.current) {
+          const event = new Event('imageLoaded');
+          canvasRef.current.dispatchEvent(event);
+        }
+      };
+      img.onerror = () => {
+        console.error('❌ Failed to load woods tileset:', woodsTilesetPath);
+      };
+      img.src = woodsTilesetPath;
+    }
+    
+    // Also load any other unique sprites from tiles
+    const uniqueSprites = [...new Set(tiles.map(tile => tile.sprite))];
+    uniqueSprites.forEach(spritePath => {
+      if (!loadedImages.has(spritePath)) {
+        console.log('🔄 Loading sprite:', spritePath);
         const img = new Image();
         img.onload = () => {
-          loadedImages.set(tile.id, img);
+          console.log('✅ Sprite loaded:', spritePath);
+          loadedImages.set(spritePath, img);
         };
         img.onerror = () => {
-          // Create a fallback colored canvas
-          const fallbackCanvas = document.createElement('canvas');
-          fallbackCanvas.width = GRID_SIZE;
-          fallbackCanvas.height = GRID_SIZE;
-          const fallbackCtx = fallbackCanvas.getContext('2d');
-          if (fallbackCtx) {
-            fallbackCtx.fillStyle = tile.color;
-            fallbackCtx.fillRect(0, 0, GRID_SIZE, GRID_SIZE);
-            fallbackCtx.fillStyle = 'white';
-            fallbackCtx.font = '12px Arial';
-            fallbackCtx.textAlign = 'center';
-            fallbackCtx.fillText(tile.name.charAt(0), GRID_SIZE / 2, GRID_SIZE / 2 + 4);
-          }
-          const fallbackImg = new Image();
-          fallbackImg.src = fallbackCanvas.toDataURL();
-          loadedImages.set(tile.id, fallbackImg);
+          console.error('❌ Failed to load sprite:', spritePath);
         };
-        img.src = tile.sprite;
+        img.src = spritePath;
       }
     });
   }, [tiles]);
@@ -126,15 +135,41 @@ const Canvas = memo<CanvasProps>(({
     Object.entries(levelData.tiles).forEach(([key, tileId]) => {
       const { x, y } = keyToPosition(key);
       const tile = tiles.find(t => t.id === tileId);
-      const img = loadedImages.get(tileId);
+      
+      // Try to get image by tile ID first, then by sprite path
+      let img = loadedImages.get(tileId);
+      if (!img && tile?.sprite) {
+        img = loadedImages.get(tile.sprite);
+      }
+      
+      console.log(`🎨 CANVAS RENDER DEBUG - Tile ${tileId}:`, {
+        tileFound: !!tile,
+        imgFound: !!img,
+        sprite: tile?.sprite,
+        frameIndex: tile?.frameIndex,
+        loadedImagesKeys: Array.from(loadedImages.keys())
+      });
       
       if (tile && img) {
         if (tile.frameWidth && tile.frameHeight) {
           // Handle sprite sheet/tileset
           const frameIndex = tile.frameIndex || 0;
+          // Calculate frames per row based on image width and tile width
           const framesPerRow = Math.floor(img.width / tile.frameWidth);
           const frameX = (frameIndex % framesPerRow) * tile.frameWidth;
           const frameY = Math.floor(frameIndex / framesPerRow) * tile.frameHeight;
+          
+          // Debug logging (remove in production)
+          console.log(`🎨 CANVAS DEBUG - Drawing tile ${tile.name}:`, {
+            frameIndex,
+            frameX,
+            frameY,
+            frameWidth: tile.frameWidth,
+            frameHeight: tile.frameHeight,
+            imgWidth: img.width,
+            imgHeight: img.height,
+            position: { x, y }
+          });
           
           // For tilesets, we need to maintain aspect ratio and scale properly
           const renderWidth = GRID_SIZE * zoom;

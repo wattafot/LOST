@@ -20,6 +20,9 @@ interface ToolbarProps {
   readonly onLevelDataChange: (data: LevelData | ((prev: LevelData) => LevelData)) => void;
   readonly onZoomChange: (zoom: number) => void;
   readonly isMobile?: boolean;
+  readonly isEntityMode?: boolean;
+  readonly onToggleEntityMode?: () => void;
+  readonly totalEntities?: number;
 }
 
 const Toolbar = memo<ToolbarProps>(({
@@ -39,7 +42,10 @@ const Toolbar = memo<ToolbarProps>(({
   onClear,
   onLevelDataChange,
   onZoomChange,
-  isMobile = false
+  isMobile = false,
+  isEntityMode = false,
+  onToggleEntityMode,
+  totalEntities = 0
 }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -340,6 +346,29 @@ const Toolbar = memo<ToolbarProps>(({
               <Trash2 size={12} />
             </button>
           </div>
+          
+          {/* Entity Mode Toggle */}
+          {onToggleEntityMode && (
+            <>
+              <div className="h-6 w-px bg-gray-600"></div>
+              <button
+                onClick={onToggleEntityMode}
+                className={`flex items-center gap-1 px-2 py-1 text-xs rounded transition-colors whitespace-nowrap ${
+                  isEntityMode
+                    ? 'bg-blue-600 text-white'
+                    : 'bg-gray-700 text-gray-300 hover:bg-gray-600 hover:text-white'
+                }`}
+              >
+                <div className="w-2 h-2 rounded border border-current flex-shrink-0" />
+                Entity
+                {totalEntities > 0 && (
+                  <span className="bg-blue-500 text-white text-xs rounded-full px-1 py-0.5 ml-1 min-w-[14px] text-center">
+                    {totalEntities}
+                  </span>
+                )}
+              </button>
+            </>
+          )}
           
           <div className="ml-auto text-xs text-gray-400 whitespace-nowrap flex-shrink-0">
             Tiles: {Object.keys(levelData.tiles).length}

@@ -18,6 +18,8 @@ export interface LevelData {
   readonly tileSize: number;
   readonly tiles: Record<string, string>;
   readonly metadata: LevelMetadata;
+  readonly entityLayers?: EntityLayer[];
+  readonly entityDefinitions?: EntityDefinition[];
 }
 
 export interface LevelMetadata {
@@ -64,3 +66,11 @@ export const GRID_SIZE = 32;
 export const DEFAULT_LEVEL_WIDTH = 25;
 export const DEFAULT_LEVEL_HEIGHT = 19;
 export const MAX_HISTORY_SIZE = 50;
+
+// Re-export entity types
+export type { 
+  EntityDefinition, 
+  EntityInstance, 
+  EntityLayer, 
+  EntityField 
+} from './types/entity';

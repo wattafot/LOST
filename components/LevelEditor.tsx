@@ -1,2 +1,2 @@
-// Use the new refactored level editor
-export { default } from './level-editor/LevelEditor';
+// Use the new enhanced level editor with entity system
+export { default } from './level-editor/EnhancedLevelEditor';
